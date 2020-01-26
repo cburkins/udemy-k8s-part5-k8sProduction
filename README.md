@@ -55,3 +55,65 @@ NOTE: Use a directory (e.g. "k8s" is our directory)
 ```
 kubectl apply -f k8s
 ```
+
+## Checkpoint: Client/Server/Worker (3 out of 5 major things)
+
+Apply config
+
+```
+[cburkin@LocalMac ~/code/udemy-k8s-part5-k8sProduction/02-k8s-production (master)]
+$ kubectl apply -f k8s
+service/client-cluster-ip-service unchanged
+deployment.apps/client-deployment unchanged
+service/server-cluster-ip-service created
+deployment.apps/server-deployment created
+deployment.apps/worker-deployment created
+
+[cburkin@LocalMac ~/code/udemy-k8s-part5-k8sProduction/02-k8s-production (master)]
+$ kubectl get pods
+NAME                                 READY   STATUS    RESTARTS   AGE
+client-deployment-646698fbd5-7sbc7   1/1     Running   0          35m
+client-deployment-646698fbd5-p9bq5   1/1     Running   0          35m
+client-deployment-646698fbd5-r9ks5   1/1     Running   0          35m
+server-deployment-5d5d45f486-6zzjm   1/1     Running   0          111s
+server-deployment-5d5d45f486-8r6bj   1/1     Running   0          111s
+server-deployment-5d5d45f486-mhgxx   1/1     Running   0          111s
+worker-deployment-7bb94c7bf-x6j5b    1/1     Running   0          111s
+
+[cburkin@LocalMac ~/code/udemy-k8s-part5-k8sProduction/02-k8s-production (master)]
+$ kubectl get deployments
+NAME                READY   UP-TO-DATE   AVAILABLE   AGE
+client-deployment   3/3     3            3           35m
+server-deployment   3/3     3            3           118s
+worker-deployment   1/1     1            1           118s
+
+[cburkin@LocalMac ~/code/udemy-k8s-part5-k8sProduction/02-k8s-production (master)]
+$ kubectl get services
+NAME                        TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
+client-cluster-ip-service   ClusterIP   10.96.182.46   <none>        3000/TCP   35m
+kubernetes                  ClusterIP   10.96.0.1      <none>        443/TCP    29h
+server-cluster-ip-service   ClusterIP   10.96.2.220    <none>        5000/TCP   2m3s
+
+```
+
+Then check our logs on one of the Servers (Express API's)
+
+```
+[cburkin@LocalMac ~/code/udemy-k8s-part5-k8sProduction/02-k8s-production (master)]
+$ kubectl logs server-deployment-5d5d45f486-6zzjm
+
+> @ start /app
+> node index.js
+
+Listening
+Error: connect ECONNREFUSED 127.0.0.1:5432
+    at TCPConnectWrap.afterConnect [as oncomplete] (net.js:1137:16) {
+  errno: -111,
+  code: 'ECONNREFUSED',
+  syscall: 'connect',
+  address: '127.0.0.1',
+  port: 5432
+}
+```
+
+Looks good: As Redis is not configured/running yet
