@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: client-deployment
+spec:
+    replicas: 3
+    # Tells this deployment which Pods it's supposed to manage
+    selector:
+        matchLabels:
+            component: web
+    # All pods created by this deployment will have these attributes
+    template:
+        metadata:
+            labels:
+                component: web
+        spec:
+            containers:
+                - name: client
+                  image: cburkins/multi-client
+                  # port that we'll expose/open from this pod/container to outside world
+                  ports:
+                      - containerPort: 3000
