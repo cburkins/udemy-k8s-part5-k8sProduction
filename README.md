@@ -19,3 +19,16 @@ $ docker-compose up
 ```
 
 Navigate to http://localhost:3050 (remember, you have to refresh to see updated fibonacci numbers)
+
+## Kubernetes Production Build
+
+```
+$ cp -rp 01-docker-elasticbeanstalk/ 02-k8s-production
+```
+
+Delete the following files
+
+-   02-k8s-production/.travis.yml (we're going to rewrite this from scratch)
+-   02-k8s-production/docker-compose.yml (switch to kubernetes, even for development)
+-   02-k8s-production/Dockerrun.aws.json (switch to k8s, for production)
+-   02-k8s-production/nginx/
