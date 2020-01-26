@@ -117,3 +117,34 @@ Error: connect ECONNREFUSED 127.0.0.1:5432
 ```
 
 Looks good: As Redis is not configured/running yet
+
+## Postgres PVC (Persistent Volume Claim)
+
+-   "Volume" in Docker: some type of mechanism that allows a container to access a filesystem outside of itself
+-   "Volume" in Kubernetes: A **pre-defined object type** that allows a container to store data at the pod level
+
+Volume object types in Kubernetes
+
+-   **Volume** : only persists with the Pod. If Pod dies, storage dies. Only good for container restarts
+-   **Persistent Volume** : Exists at the cluster level, outside the pod, and will survive pod restart
+-   **Persistent Volume Claim** : Advertisement of available storage. Statically provisioned Persistent Volume already exists. Dynamically Provisioned PV is created when needed
+
+## Kubernetes Secret (to store a password)
+
+Kinds of Secret:
+
+-   generic
+-   docker-registry
+-   tls (https setup)
+
+```
+# kubectl create secret generic <secret-name> --from-literal key=value
+
+$ kubectl create secret generic pgpassword --from-literal PGPASSWORD=12345asdf
+secret/pgpassword created
+
+$ kubectl get secrets
+NAME                  TYPE                                  DATA   AGE
+default-token-pctrk   kubernetes.io/service-account-token   3      30h
+pgpassword            Opaque                                1      30s
+```

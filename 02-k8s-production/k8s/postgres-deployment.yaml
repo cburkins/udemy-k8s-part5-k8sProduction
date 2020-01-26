@@ -14,9 +14,24 @@ spec:
             labels:
                 component: postgres
         spec:
+            volumes:
+                - name: postgres-storage
+                  # take advantage of PVC (advertisement) created in "database-persistent-volume-claim.yaml"
+                  persistentVolumeClaim:
+                      claimName: database-persistent-volume-claim
             containers:
                 - name: postgres
                   image: postgres #use generic postgres image from DockerHub
                   # port that we'll expose/open from this pod/container to outside world
                   ports:
                       - containerPort: 5432
+                  volumeMounts:
+                      - name: postgres-storage #defined above
+                        mountPath: /var/lib/postgresql/data #default path for Postgres DB
+                        subPath: postgres #create/use a sub-folder with volume
+                  env:
+                      - name: PGPASSWORD #by default, postgres checks/uses "PGPASSWORD" env var to override default pw for new database
+                        valueFrom:
+                            secretKeyRef:
+                                name: pgpassword #use Secret object with this name
+                                key: PGPASSWORD #and retrieve key/value with this key (Secret object can have many key/value pairs)
