@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
     name: server-deployment
 spec:
-    replicas: 3
+    replicas: 1
     selector:
         matchLabels:
             component: server
@@ -25,16 +25,17 @@ spec:
                       - name: REDIS_PORT
                         value: "6379"
                       - name: PGUSER
-                        value: postgres
+                        value: "postgres"
                       - name: PGHOST
                         value: postgres-cluster-ip-service
                       - name: PGPORT
                         value: "5432"
                       - name: PGDATABASE
-                        value: postgres
-                      - name: PGPASSWORD # "multi-server" image looks for this ENV variable
-                        valueFrom:
-                            secretKeyRef:
-                                name: pgpassword # Look at the Secret object with this name
-                                key: PGPASSWORD # get this key name from Secret object (there can be many key/value pairs in Secret Object)
-
+                        value: "postgres"
+                      - name: PGPASSWORD
+                        value: "postgres_password"
+                      # - name: PGPASSWORD # "multi-server" image looks for this ENV variable
+                      #   valueFrom:
+                      #       secretKeyRef:
+                      #           name: pgpassword # Look at the Secret object with this name
+                      #           key: PGPASSWORD # get this key name from Secret object (there can be many key/value pairs in Secret Object)

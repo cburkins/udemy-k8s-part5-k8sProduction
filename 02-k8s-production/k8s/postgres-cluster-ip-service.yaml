@@ -7,5 +7,5 @@ spec:
     selector:
         component: postgres
     ports:
-        - port: 5423 #front-end port exposed to other pods in the clusters
+        - port: 5432 #front-end port exposed to other pods in the clusters
           targetPort: 5432 #port exposed on the back-end target pod

@@ -45,8 +45,8 @@ Kubernetes "Service" is used for Networking. Services include:
 
 -   ClusterIP: Exposes a set of pods to _other objects in the cluster_. Can't expose to outside world.
 -   NodePort: Exposes a set of pods to the outside world (_only good for dev purposes_)
--   LoadBalancer
--   Ingress
+-   LoadBalancer: Legacy way to get network traffic into a k8s cluster, exposes a single "Deployment", has to integrate with cloud provider
+-   Ingress: **New way** to exposes a set of services to the outside world
 
 ## Apply a group of configuration files
 
@@ -148,3 +148,87 @@ NAME                  TYPE                                  DATA   AGE
 default-token-pctrk   kubernetes.io/service-account-token   3      30h
 pgpassword            Opaque                                1      30s
 ```
+
+## Ingress
+
+NOTE: There are two popular Ingress implementations:
+
+-   ingress-nginx: Community-led, and **used in this course**
+-   kubernetes-ingress: Led by company Nginx
+
+![image](https://user-images.githubusercontent.com/9342308/73128906-10122600-3fa5-11ea-8380-cb47e2f84ca8.png)
+
+NOTE: In our case, the "Ingress Controller" and "Something that accepts/routes traffic" is actually the same thing
+
+![image](https://user-images.githubusercontent.com/9342308/73144198-0e159900-4071-11ea-9e12-fea973f7bb05.png)
+
+#### Production deployment in Google Cloud
+
+NOTES:
+
+-   Behind the scenes, Google's Ingress config is still using the legacy Kubernetes object "Load Balancer Service".
+-   That Load Balancer Service sends through an Nginx Pod
+-   Creates a "default-backend" pod to assist in checking the health of the cluster
+
+![image](https://user-images.githubusercontent.com/9342308/73144219-706e9980-4071-11ea-9af7-10dfe7a2cf16.png)
+
+#### Why not simplify and use our own Nginx pod for routing ?
+
+![image](https://user-images.githubusercontent.com/9342308/73144314-afe9b580-4072-11ea-8fba-2f94f305be74.png)
+
+Answer:
+
+-   ingress-nginx has lots of additional functionlity
+-   For example, it can (does?) actually bypass the "ClusterIP Service", and route directly to underlying pods
+-   That allows for sticky session, where a particular user's traffic always stays with the same pod for duration of session
+
+NOTE: Instructor recommended additional reading: https://www.joyfulbikeshedding.com/blog/2018-03-26-studying-the-kubernetes-ingress-system.html
+
+![image](https://user-images.githubusercontent.com/9342308/73144415-7f564b80-4073-11ea-841f-fcb1f7724dc9.png)
+
+#### Implementation for ingress-nginx
+
+Actually following this: https://github.com/kubernetes/ingress-nginx
+Which actually points you to here: https://kubernetes.github.io/ingress-nginx/deploy/
+
+1. Follow "Generic Deployment" (have to do this, even if you really plan to use Google Cloud or AWS)
+1. Execute the mandatory command (deploys pod for default-http-backend pod, and pod for nginx-ingress-controller)
+
+```
+$ kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.27.1/deploy/static/mandatory.yaml
+
+namespace/ingress-nginx created
+configmap/nginx-configuration created
+configmap/tcp-services created
+configmap/udp-services created
+serviceaccount/nginx-ingress-serviceaccount created
+clusterrole.rbac.authorization.k8s.io/nginx-ingress-clusterrole created
+role.rbac.authorization.k8s.io/nginx-ingress-role created
+rolebinding.rbac.authorization.k8s.io/nginx-ingress-role-nisa-binding created
+clusterrolebinding.rbac.authorization.k8s.io/nginx-ingress-clusterrole-nisa-binding created
+deployment.apps/nginx-ingress-controller created
+limitrange/ingress-nginx created
+```
+
+For minikube development environment
+
+```
+$ minikube addons enable ingress
+
+* ingress was successfully enabled
+
+```
+
+#### Create a routing file for Ingress
+
+Reminder: We need to setup these routes for inbound traffic
+
+![image](https://user-images.githubusercontent.com/9342308/73144778-18d32c80-4077-11ea-9428-1dd27e24d9ec.png)
+
+## Minikube Dashboard
+
+```
+$ minikube dashboard
+```
+
+![image](https://user-images.githubusercontent.com/9342308/73145976-348e0100-407e-11ea-8147-f6b6c5582d91.png)
