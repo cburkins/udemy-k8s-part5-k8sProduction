@@ -29,12 +29,12 @@ spec:
                       - name: postgres-storage #defined above
                         mountPath: /var/lib/postgresql/data #default path for Postgres DB
                         subPath: postgres #create/use a sub-folder with volume
+                  #   env:
+                  #       - name: POSTGRES_PASSWORD
+                  #         value: "postgres_password"
                   env:
-                      - name: POSTGRES_PASSWORD
-                        value: "postgres_password"
-                #   env:
-                #       - name: POSTGRES_PASSWORD #by default, postgres checks/uses "PGPASSWORD" env var to override default pw for new database
-                #         valueFrom:
-                #             secretKeyRef:
-                #                 name: pgpassword #use Secret object with this name
-                #                 key: PGPASSWORD #and retrieve key/value with this key (Secret object can have many key/value pairs)
+                      - name: POSTGRES_PASSWORD #by default, postgres checks/uses "PGPASSWORD" env var to override default pw for new database
+                        valueFrom:
+                            secretKeyRef:
+                                name: pgpassword #use Secret object with this name
+                                key: PGPASSWORD #and retrieve key/value with this key (Secret object can have many key/value pairs)
