@@ -24,4 +24,4 @@ before_install:
 
 script:
     # CI=true causes react test to actually exit
-    - docker run -e CI=true USERNAME/docker-react npm run test
+    - docker run -e CI=true cburkins/docker-react npm run test
