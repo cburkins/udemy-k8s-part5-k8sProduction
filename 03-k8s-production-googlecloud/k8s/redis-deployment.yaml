@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: redis-deployment
+spec:
+    replicas: 1
+    # Tells this deployment which Pods it's supposed to manage
+    selector:
+        matchLabels:
+            component: redis
+    # All pods created by this deployment will have these attributes
+    template:
+        metadata:
+            labels:
+                component: redis
+        spec:
+            containers:
+                - name: redis
+                  image: redis #using generic redis image from DockerHub
+                  ports:
+                      - containerPort: 6379 #port that we'll expose/open from this pod/container to outside world

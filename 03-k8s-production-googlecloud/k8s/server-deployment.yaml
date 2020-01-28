@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: server-deployment
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            component: server
+    # All pods created by this deployment will have these attributes
+    template:
+        metadata:
+            labels:
+                component: server
+        spec:
+            containers:
+                - name: server
+                  image: cburkins/multi-server
+                  # port that we'll expose/open from this pod/container to outside world
+                  ports:
+                      - containerPort: 5000
+                  env:
+                      - name: REDIS_HOST
+                        value: redis-cluster-ip-service #defined in "redis-cluster-ip-service", essentially a hostname within the cluster
+                      - name: REDIS_PORT
+                        value: "6379"
+                      - name: PGUSER
+                        value: "postgres"
+                      - name: PGHOST
+                        value: postgres-cluster-ip-service
+                      - name: PGPORT
+                        value: "5432"
+                      - name: PGDATABASE
+                        value: "postgres"
+                      # - name: PGPASSWORD
+                      #   value: "12345asdf"
+                      - name: PGPASSWORD # "multi-server" image looks for this ENV variable
+                        valueFrom:
+                            secretKeyRef:
+                                name: pgpassword # Look at the Secret object with this name
+                                key: PGPASSWORD # get this key name from Secret object (there can be many key/value pairs in Secret Object)

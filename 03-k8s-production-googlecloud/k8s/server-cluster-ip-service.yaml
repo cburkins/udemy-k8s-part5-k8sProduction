@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: server-cluster-ip-service
+spec:
+    type: ClusterIP
+    # Find pods that we're supposed to be providing access to
+    selector:
+        component: server
+    ports:
+        - port: 5000 #front-end port exposed to other pods in the cluster
+          targetPort: 5000 #port exposed on the back-end target pod

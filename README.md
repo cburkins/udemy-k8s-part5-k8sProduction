@@ -232,3 +232,12 @@ $ minikube dashboard
 ```
 
 ![image](https://user-images.githubusercontent.com/9342308/73145976-348e0100-407e-11ea-8147-f6b6c5582d91.png)
+
+## Production Deployment to Google Cloud
+
+Why use Google Cloud over AWS ?
+
+-   Google created Kubernetes
+-   AWS only "recently" got Kubernetes support (as of 2018)
+-   Far, far easier to poke around Kubernetes on Google Cloud
+-   Excellent documentation for beginners
