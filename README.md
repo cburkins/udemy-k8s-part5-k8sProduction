@@ -260,8 +260,74 @@ Why use Google Cloud over AWS ?
 -   Encrypt and upload JSON file to our Travis account
 -   In .travis.yml, add code to unencrypt JSON file and load into GCloud SDK
 
-adsf
+## Create Service Account on GCP
 
 -   On Google Cloud,go to "IAM and Admin", then Service Accounts
 -   Create account (with role "Kubernetes Engine Admin")
 -   Create Private Key (JSON file)
+
+## Encrypt JSON Private Key from GCP
+
+-   Install Travis CI CLI, requires Ruby. Easy on Mac. On Windows, Use a Ruby Docker Image
+
+```bash
+cburkin@LocalMac ~/code/udemy-k8s-part5-k8sProduction (master)]
+$ docker run -it -v $(pwd):/app ruby:2.3 sh
+Unable to find image 'ruby:2.3' locally
+2.3: Pulling from library/ruby
+e79bb959ec00: Pull complete
+d4b7902036fe: Pull complete
+1b2a72d4e030: Pull complete
+d54db43011fd: Pull complete
+69d473365bb3: Pull complete
+84ed2a0dc034: Pull complete
+8952ca0665c5: Pull complete
+ef485f36c624: Pull complete
+Digest: sha256:78cc821d95c48621e577b6b0d44c9d509f0f2a4e089b9fd0ca2ae86f274773a8
+Status: Downloaded newer image for ruby:2.3
+#
+
+# gem install travis
+Fetching faraday-0.17.3.gem
+Fetching highline-1.7.10.gem
+Fetching net-http-pipeline-1.0.1.gem
+Fetching multipart-post-2.1.1.gem
+Fetching faraday_middleware-0.14.0.gem
+...
+Successfully installed websocket-1.2.8
+Successfully installed pusher-client-0.6.2
+Successfully installed travis-1.8.10
+17 gems installed
+#
+
+# travis login
+We need your GitHub login to identify you.
+This information will not be sent to Travis CI, only to api.github.com.
+The password will not be displayed.
+
+Try running with --github-token or --auto if you don't want to enter your password anyway.
+
+Username: cburkins
+Password for cburkins: ********
+Successfully logged in as cburkins!
+#
+
+# travis encrypt-file udemy-k8s-01-28ee42cd1afb.json -r cburkins/udemy-k8s-part5-k8sProduction
+encrypting udemy-k8s-01-28ee42cd1afb.json for cburkins/udemy-k8s-part5-k8sProduction
+storing result as udemy-k8s-01-28ee42cd1afb.json.enc
+storing secure env variables for decryption
+
+Please add the following to your build script (before_install stage in your .travis.yml, for instance):
+
+    openssl aes-256-cbc -K $encrypted_0c35eebf403c_key -iv $encrypted_0c35eebf403c_iv -in udemy-k8s-01-28ee42cd1afb.json.enc -out udemy-k8s-01-28ee42cd1afb.json -d
+
+Pro Tip: You can add it automatically by running with --add.
+
+Make sure to add udemy-k8s-01-28ee42cd1afb.json.enc to the git repository.
+Make sure not to add udemy-k8s-01-28ee42cd1afb.json to the git repository.
+Commit all changes to your .travis.yml.
+#
+
+
+
+```
