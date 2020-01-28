@@ -241,3 +241,27 @@ Why use Google Cloud over AWS ?
 -   AWS only "recently" got Kubernetes support (as of 2018)
 -   Far, far easier to poke around Kubernetes on Google Cloud
 -   Excellent documentation for beginners
+
+# NOTE: Be sure to use travis-ci.org (not com)
+
+## Setup Google Cloud & Build Kubernetes Cluster
+
+-   Setup Billing
+-   Select "Kubernetes Engine"
+-   Create Cluster
+-   3 nodes
+-   Machine type: n1-standard-1
+
+## Setup Google Accounts
+
+-   On google cloud, create a service account
+-   Download service account credentials in a JSON file
+-   Download and install Travis CLI
+-   Encrypt and upload JSON file to our Travis account
+-   In .travis.yml, add code to unencrypt JSON file and load into GCloud SDK
+
+adsf
+
+-   On Google Cloud,go to "IAM and Admin", then Service Accounts
+-   Create account (with role "Kubernetes Engine Admin")
+-   Create Private Key (JSON file)
