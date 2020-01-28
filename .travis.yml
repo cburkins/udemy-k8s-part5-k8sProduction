@@ -7,7 +7,7 @@ before_install:
     # Apply config to bash shell
     - source $HOME/google-cloud-sdk/path.bash.inc
     # Install kubectl command
-    - gcloud components update kubectl
+    - gcloud components install kubectl
     # Decrypt our Google Cloud credentials
     # Provided by "travis encrypt-file" command that I ran on my local machine
     - openssl aes-256-cbc -K $encrypted_0c35eebf403c_key -iv $encrypted_0c35eebf403c_iv -in 03-k8s-production-googlecloud/udemy-k8s-01-28ee42cd1afb.json.enc -out udemy-k8s-01-28ee42cd1afb.json -d
