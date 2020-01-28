@@ -17,7 +17,7 @@ before_install:
     - gcloud config set project udemy-k8s-01
     - gcloud config set compute/zone us-east1-b
     # Tell gcloud which cluster we're using with kubernetes commands (CLUSTER NAME, not cluster ID)
-    - gcloud container clusters get-credentials udemy-k8s-01
+    - gcloud container clusters get-credentials udemy-k8s-standard-cluster-1
     - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
     # Build with Dockerfile.dev since that has dependencies to run react test
     - docker build -t cburkins/react-test -f 03-k8s-production-googlecloud/client/Dockerfile.dev 03-k8s-production-googlecloud/client
