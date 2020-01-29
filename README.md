@@ -1,11 +1,42 @@
 # Part 5 : Udemy Course on Kubernetes (Stephen Grider)
 
-## Background
+## Background (for Part 5)
 
--   Part 4: Created our first kubernetes configuration, fairly simple
--   **Part 5: More complex kubernetes deployment, ready for production**
+NOTE: I've broken down the Udemy Course on K8s into five Github repos. This is the 5th repo, and here's the description of all of them.
 
-## Architecture Overview
+-   Part 1: Three things (1) simpleweb to demonstrate a single container (2) "visits" counter to demonstrate two containers and docker-compose (3) multiple containers with nginx hosting a static build of a basic React app
+-   Part 2:
+-   Part 3: Deploy multiple containers on AWS Elastic Beanstalk (doesn't use Kubernetes)
+-   Part 4: Deploy on local (minikube) Kubernetes (good for local development)
+-   **Part 5: Deploy on GCP Kubernetes (good for Production)**
+
+---
+
+## TL;DR
+
+#### Deploying to a new Cluster
+
+Note: Kube shell might be unique to GCP
+
+1. Create Cluster on GCP (3 nodes ?)
+1. Create secret (for Postgres password)
+   a. kubectl create secret generic pgpassword --from-literal PGPASSWORD=[password]
+1. Install helm v3
+1. Use helm to install ingress-nginx
+1. Use travis to deploy your project
+
+#### Removal of Cluster (Cleanup after done)
+
+1. GCP: Select correct Project
+1. GCP: Remove cluster (GCP->KubernetesEngine->Clusters)
+
+---
+
+## The Long Version
+
+Below is _all_ the detail you need for a complete deployment to a Kubernetes Cluster on Google Cloud Platform (GCP)
+
+#### Architecture Reminder
 
 -   Reminder: "multi-client" container/pod (which is the React client) is configured to listen on **port 3000**
 -   Reminder: "multi-server" container/pod (which is the express server) is configured to listen on **port 5000**
@@ -14,7 +45,7 @@
 
 ![image](https://user-images.githubusercontent.com/9342308/73128906-10122600-3fa5-11ea-8380-cb47e2f84ca8.png)
 
-## Checkpoint
+#### Checkpoint
 
 Make sure all the docker containers still work before starting complex kubernetes build
 
@@ -25,7 +56,7 @@ $ docker-compose up
 
 Navigate to http://localhost:3050 (remember, you have to refresh to see updated fibonacci numbers)
 
-## Kubernetes Production Build
+#### Prep: (Conversion from local docker-compose to Kubernetes Production Build)
 
 ```
 $ cp -rp 01-docker-elasticbeanstalk/ 02-k8s-production
@@ -40,7 +71,7 @@ Delete the following files
 
 Create k8s directory, and create about 11 config files
 
-## NodePort Service vs ClusterIP Service
+#### NodePort Service vs ClusterIP Service
 
 Kubernetes "Service" is used for Networking. Services include:
 
@@ -49,7 +80,7 @@ Kubernetes "Service" is used for Networking. Services include:
 -   LoadBalancer: Legacy way to get network traffic into a k8s cluster, exposes a single "Deployment", has to integrate with cloud provider
 -   Ingress: **New way** to exposes a set of services to the outside world
 
-## Apply a group of configuration files
+#### Apply a group of configuration files
 
 NOTE: Use a directory (e.g. "k8s" is our directory)
 
@@ -57,7 +88,7 @@ NOTE: Use a directory (e.g. "k8s" is our directory)
 kubectl apply -f k8s
 ```
 
-## Checkpoint: Client/Server/Worker (3 out of 5 major things)
+#### Checkpoint: Client/Server/Worker (3 out of 5 major things)
 
 Apply config
 
@@ -119,7 +150,7 @@ Error: connect ECONNREFUSED 127.0.0.1:5432
 
 Looks good: As Redis is not configured/running yet
 
-## Postgres PVC (Persistent Volume Claim)
+#### Postgres PVC (Persistent Volume Claim)
 
 -   "Volume" in Docker: some type of mechanism that allows a container to access a filesystem outside of itself
 -   "Volume" in Kubernetes: A **pre-defined object type** that allows a container to store data at the pod level
@@ -130,7 +161,7 @@ Volume object types in Kubernetes
 -   **Persistent Volume** : Exists at the cluster level, outside the pod, and will survive pod restart
 -   **Persistent Volume Claim** : Advertisement of available storage. Statically provisioned Persistent Volume already exists. Dynamically Provisioned PV is created when needed
 
-## Kubernetes Secret (to store a password)
+#### Kubernetes Secret (to store a password)
 
 Kinds of Secret:
 
@@ -150,7 +181,7 @@ default-token-pctrk   kubernetes.io/service-account-token   3      30h
 pgpassword            Opaque                                1      30s
 ```
 
-## Ingress
+#### Ingress
 
 NOTE: There are two popular Ingress implementations:
 
@@ -226,7 +257,7 @@ Reminder: We need to setup these routes for inbound traffic
 
 ![image](https://user-images.githubusercontent.com/9342308/73144778-18d32c80-4077-11ea-9428-1dd27e24d9ec.png)
 
-## Minikube Dashboard
+#### Minikube Dashboard
 
 ```
 $ minikube dashboard
@@ -234,7 +265,7 @@ $ minikube dashboard
 
 ![image](https://user-images.githubusercontent.com/9342308/73145976-348e0100-407e-11ea-8147-f6b6c5582d91.png)
 
-## Production Deployment to Google Cloud
+#### Production Deployment to Google Cloud
 
 Why use Google Cloud over AWS ?
 
@@ -245,7 +276,7 @@ Why use Google Cloud over AWS ?
 
 # NOTE: Be sure to use travis-ci.org (not com)
 
-## Setup Google Cloud & Build Kubernetes Cluster
+#### Setup Google Cloud & Build Kubernetes Cluster
 
 -   Setup Billing
 -   Select "Kubernetes Engine"
@@ -253,7 +284,7 @@ Why use Google Cloud over AWS ?
 -   3 nodes
 -   Machine type: n1-standard-1
 
-## Setup Google Accounts
+#### Setup Google Accounts
 
 -   On google cloud, create a service account
 -   Download service account credentials in a JSON file
@@ -261,13 +292,13 @@ Why use Google Cloud over AWS ?
 -   Encrypt and upload JSON file to our Travis account
 -   In .travis.yml, add code to unencrypt JSON file and load into GCloud SDK
 
-## Create Service Account on GCP
+#### Create Service Account on GCP
 
 -   On Google Cloud,go to "IAM and Admin", then Service Accounts
 -   Create account (with role "Kubernetes Engine Admin")
 -   Create Private Key (JSON file)
 
-## Encrypt JSON Private Key from GCP
+#### Encrypt JSON Private Key from GCP
 
 -   Install Travis CI CLI, requires Ruby. Easy on Mac. On Windows, Use a Ruby Docker Image
 
@@ -330,15 +361,6 @@ Commit all changes to your .travis.yml.
 #
 
 ```
-
-## Deploying to a new Cluster
-
-Note: Kube shell might be unique to GCP
-
-1. Create Cluster (3 nodes ?)
-1. Create secret (for Postgres password)
-   a. kubectl create secret generic pgpassword --from-literal PGPASSWORD=[password]
-1.
 
 ## Helm
 
@@ -412,3 +434,7 @@ Verify IP Addresses
 Click on the "Port 80" address, and you should see this (ingress will show this page when it doesn't have a matching route)
 
 ![image](https://user-images.githubusercontent.com/9342308/73385027-5ebc0a80-429a-11ea-9acd-67fe776066fb.png)
+
+After pushing our completed deployment package into Github, now we can see both the external IP addresses plus the routes
+
+![image](https://user-images.githubusercontent.com/9342308/73387002-d3447880-429d-11ea-9ec8-a5df52211acd.png)
