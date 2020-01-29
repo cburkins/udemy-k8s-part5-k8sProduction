@@ -10,6 +10,7 @@
 -   Reminder: "multi-client" container/pod (which is the React client) is configured to listen on **port 3000**
 -   Reminder: "multi-server" container/pod (which is the express server) is configured to listen on **port 5000**
 -   Reminder: "multi-server" port expects a set of key/values so it can connect to Postgres and Redis
+-   Instructor's repo: https://github.com/StephenGrider/DockerCasts/blob/master/complex/.travis.yml
 
 ![image](https://user-images.githubusercontent.com/9342308/73128906-10122600-3fa5-11ea-8380-cb47e2f84ca8.png)
 
