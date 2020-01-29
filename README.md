@@ -328,6 +328,86 @@ Make sure not to add udemy-k8s-01-28ee42cd1afb.json to the git repository.
 Commit all changes to your .travis.yml.
 #
 
+```
 
+## Deploying to a new Cluster
+
+Note: Kube shell might be unique to GCP
+
+1. Create Cluster (3 nodes ?)
+1. Create secret (for Postgres password)
+   a. kubectl create secret generic pgpassword --from-literal PGPASSWORD=[password]
+1.
+
+## Helm
+
+Helm is a way to manage 3rd party tools inside your cluster
+
+1. Helm Client
+1. Tiller Server (which runs inside our kubernetes cluster)
+
+## Installing Helm
+
+Reference: https://helm.sh/docs/intro/install/#from-script
+
+Install Helm v3 & configure repo
 
 ```
+$ curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  6617  100  6617    0     0  46316      0 --:--:-- --:--:-- --:--:-- 46598
+Error: could not find tiller
+Helm v3.0.3 is available. Changing from version .
+Downloading https://get.helm.sh/helm-v3.0.3-linux-amd64.tar.gz
+Preparing to install helm into /usr/local/bin
+helm installed into /usr/local/bin/helm
+
+$ helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+"stable" has been added to your repositories
+
+```
+
+List available installs
+
+```
+$ helm search repo stable
+NAME                                    CHART VERSION   APP VERSION             DESCRIPTION
+stable/acs-engine-autoscaler            2.2.2           2.1.1                   DEPRECATED Scales worker nodes within agent pools
+stable/aerospike                        0.3.2           v4.5.0.5                A Helm chart for Aerospike in Kubernetes
+stable/airflow                          5.2.5           1.10.4                  Airflow is a platform to programmatically autho...
+stable/ambassador                       5.3.0           0.86.1                  A Helm chart for Datawire Ambassador
+...and many more
+```
+
+See what has been released using Helm
+
+```
+helm ls
+```
+
+```
+$ curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+$ chmod 700 ./get-helm-3
+$ ./get-helm-3
+
+$ helm install my-nginx stable/nginx-ingress --set rbac.create=true
+
+
+
+$ kubectl --namespace default get services -o wide -w my-nginx-nginx-ingress-controller
+NAME                                TYPE           CLUSTER-IP   EXTERNAL-IP   PORT(S)                      AGE   SELECTOR
+my-nginx-nginx-ingress-controller   LoadBalancer   10.0.6.54    <pending>     80:32578/TCP,443:32242/TCP   42s   app=nginx-ingress,component=controller,relea
+se=my-nginx
+my-nginx-nginx-ingress-controller   LoadBalancer   10.0.6.54   35.231.99.178   80:32578/TCP,443:32242/TCP   47s   app=nginx-ingress,component=controller,rele
+ase=my-nginx
+
+```
+
+Verify IP Addresses
+
+![image](https://user-images.githubusercontent.com/9342308/73384896-2c121200-429a-11ea-9d35-624819ada6ef.png)
+
+Click on the "Port 80" address, and you should see this (ingress will show this page when it doesn't have a matching route)
+
+![image](https://user-images.githubusercontent.com/9342308/73385027-5ebc0a80-429a-11ea-9acd-67fe776066fb.png)

@@ -1,6 +1,10 @@
 sudo: required
 services:
     - docker
+env:
+    global:
+        - SHA=$(git rev-parse HEAD)
+        - CLOUDSDK_CORE_DISABLE_PROMPTS=1
 before_install:
     # Install Google Cloud SDK
     - curl https://sdk.cloud.google.com | bash -s -- --disable-prompts > /dev/null;
@@ -25,3 +29,10 @@ before_install:
 script:
     # CI=true causes react test to actually exit
     - docker run -e CI=true cburkins/react-test npm run test
+
+deploy:
+    # Travis CI doesn't have a pre-defined provider for Google Cloud, so we'll write it
+    provider: script
+    script: bash ./03-k8s-production-googlecloud/deploy.sh
+    on:
+        branch: master
