@@ -5,34 +5,70 @@
 NOTE: I've broken down the Udemy Course on K8s into five Github repos. This is the 5th repo, and here's the description of all of them.
 
 -   Part 1: Three things (1) simpleweb to demonstrate a single container (2) "visits" counter to demonstrate two containers and docker-compose (3) multiple containers with nginx hosting a static build of a basic React app
--   Part 2:
--   Part 3: Deploy multiple containers on AWS Elastic Beanstalk (doesn't use Kubernetes)
--   Part 4: Deploy on local (minikube) Kubernetes (good for local development)
--   **Part 5: Deploy on GCP Kubernetes (good for Production)**
+-   Part 2: Travsi CI builds to Elastic Beanstalk. Content is a simple one-container React app
+-   Part 3: Deploy multiple containers on AWS Elastic Beanstalk (doesn't use Kubernetes yet).
+-   Part 4: Deploy on local (minikube) Kubernetes (good for local development). Started with YAML files for simple one-pod configurations, finished with "Deployments" that can create/manage multiple pods that each run same image. Probably Section 13 (Lectures 188 through 203)
+-   **Part 5: The Path to Production: Production-grade deployment on minikube, then deploy on GCP Kubernetes, using helm v3. Sections 14,15,16**
+
+#### Directories in repo
+
+-   01-docker-elasticbeanstalk: Copied from Part 3, not modified
+-   02-k8s-development-minikube: Copied from "01", created 11 yaml files in "k8s" directory to build up a product-grade k8s deployment. Tested on minikube running "kubectl apply -f ./k8s"
+-   03-k8s-production-googlecloud: Copied from "02", and built ".travis.yml" file in repo root which tells Travis to use everything in "03" directory. Builds images in Travis, pushes to DockerHub, then deploys those images to k8s cluster in Google Cloud
 
 ---
 
-## TL;DR
+## TL;DR for Using This Repo (later, when I forget what I did :))
 
-#### Deploying to a new Cluster
+Each of three directories in this repo can be used for deployment in a different way
 
-Note: Kube shell might be unique to GCP
+### 01-docker-elasticbeanstalk
 
+1. TBD
+
+### 02-k8s-development-minikube
+
+NOTE: these instructions are for minikube running via Virtualbox on a Mac
+
+1. Install virtualbox
+1. Install minikube
+1. minikube start (can verify "minikube" VM is running in Virtualbox)
+1. Create minikube cluster
+1. cd 02-k8s-development-minikube
+1. kubectl apply ./k8s
+1. minikube addons enable ingress
+1. minikube ip
+1. In browser, navigate to ip (port 80)
+
+Clean up:
+
+1. kubectl delete -f ./k8s
+1. kubectl get pods (should be empty)
+1. kubectl get services (should show only "kubernetes")
+1. minikube stop
+
+Additional thoughts:
+
+1. minikube dashboard (see way down below)
+
+### 03-k8s-production-googlecloud
+
+1. cp ./03-k8s-production-googlecloud/travis-gcp.yaml ./.travis.yml
 1. Create Cluster on GCP (3 nodes ?)
-1. Create secret (for Postgres password)
+1. Create secret on GCP (for Postgres password)
    a. kubectl create secret generic pgpassword --from-literal PGPASSWORD=[password]
-1. Install helm v3
+1. Install helm v3 on GCP
 1. Use helm to install ingress-nginx
-1. Use travis to deploy your project
+1. Trigger Travis to deploy your project (uses .travis.yml in repo root)
 
-#### Removal of Cluster (Cleanup after done)
+Removal of Cluster (Cleanup after done)
 
 1. GCP: Select correct Project
 1. GCP: Remove cluster (GCP->KubernetesEngine->Clusters)
 
 ---
 
-## The Long Version
+## Course Notes while constructing this repo
 
 Below is _all_ the detail you need for a complete deployment to a Kubernetes Cluster on Google Cloud Platform (GCP)
 
@@ -71,7 +107,7 @@ Delete the following files
 
 Create k8s directory, and create about 11 config files
 
-#### NodePort Service vs ClusterIP Service
+#### Convert from NodePort Service vs ClusterIP Service
 
 Kubernetes "Service" is used for Networking. Services include:
 
@@ -80,7 +116,7 @@ Kubernetes "Service" is used for Networking. Services include:
 -   LoadBalancer: Legacy way to get network traffic into a k8s cluster, exposes a single "Deployment", has to integrate with cloud provider
 -   Ingress: **New way** to exposes a set of services to the outside world
 
-#### Apply a group of configuration files
+#### Apply a group of configuration files in kubectl
 
 NOTE: Use a directory (e.g. "k8s" is our directory)
 
@@ -150,7 +186,7 @@ Error: connect ECONNREFUSED 127.0.0.1:5432
 
 Looks good: As Redis is not configured/running yet
 
-#### Postgres PVC (Persistent Volume Claim)
+#### Create Postgres PVC (Persistent Volume Claim)
 
 -   "Volume" in Docker: some type of mechanism that allows a container to access a filesystem outside of itself
 -   "Volume" in Kubernetes: A **pre-defined object type** that allows a container to store data at the pod level
@@ -161,7 +197,7 @@ Volume object types in Kubernetes
 -   **Persistent Volume** : Exists at the cluster level, outside the pod, and will survive pod restart
 -   **Persistent Volume Claim** : Advertisement of available storage. Statically provisioned Persistent Volume already exists. Dynamically Provisioned PV is created when needed
 
-#### Kubernetes Secret (to store a password)
+#### Create Kubernetes Secret (to store a password for postgres DB)
 
 Kinds of Secret:
 
@@ -181,7 +217,7 @@ default-token-pctrk   kubernetes.io/service-account-token   3      30h
 pgpassword            Opaque                                1      30s
 ```
 
-#### Ingress
+#### Create Ingress to receive/route network traffic
 
 NOTE: There are two popular Ingress implementations:
 
@@ -273,6 +309,10 @@ Why use Google Cloud over AWS ?
 -   AWS only "recently" got Kubernetes support (as of 2018)
 -   Far, far easier to poke around Kubernetes on Google Cloud
 -   Excellent documentation for beginners
+
+```
+$ cp -rp 02-k8s-development-minikube/ 03-k8s-production-googlecloud/
+```
 
 # NOTE: Be sure to use travis-ci.org (not com)
 
