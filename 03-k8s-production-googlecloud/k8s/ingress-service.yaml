@@ -16,7 +16,7 @@ spec:
         - hosts:
               - chadburkins.org
               - www.chadburkins.org
-          # comes from certificate.yaml:spec:secretName
+              # comes from certificate.yaml:spec:secretName
           secretName: udemy-k8s-01
     # rules:
     #     - http:
