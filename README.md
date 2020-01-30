@@ -133,6 +133,7 @@ NOTE: "Indexes I have seen" is pulling from Postges container, while "Caculated 
 
 ### Option 3: Google Cloud Kubernetes (03-k8s-production-googlecloud)
 
+1. Within Travis CI (.org), enable this repo
 1. ln -s ./03-k8s-production-googlecloud/travis-gcp.yaml ./.travis.yml
 1. Create Project
 1. Create Cluster on GCP (Standard cluster, Zonal, 3 nodes, n1-standard-1)
@@ -177,7 +178,20 @@ NOTE: "Indexes I have seen" is pulling from Postges container, while "Caculated 
     version.BuildInfo{Version:"v3.0.3", GitCommit:"ac925eb7279f4a6955df663a0128044a8a6b7593", GitTreeState:"clean", GoVersion:"go1.13.6"}
     ```
 
-1. Use helm to install ingress-nginx, and wait for your EXTERNAL-IP to show up
+1. Configure travis.yml file in repo to point towards your new cluster
+
+    - Get cluster name from GCP console
+
+    ![image](https://user-images.githubusercontent.com/9342308/73472873-c1c0a680-4359-11ea-8ffb-6b9c34547de8.png)
+
+    - Edit, and find line "gcloud container clusters get-credentials", put this name at end
+      &nbsp;
+
+1. Configure travis.yml file in repo for <b>Cluster ID</b> and <b>Cluster Name</b>
+
+    ![image](https://user-images.githubusercontent.com/9342308/73473475-d9e4f580-435a-11ea-9e78-77d1b7119dcc.png)
+
+1) Use helm to install ingress-nginx, and wait for your EXTERNAL-IP to show up
 
     ```
 
@@ -199,12 +213,12 @@ NOTE: "Indexes I have seen" is pulling from Postges container, while "Caculated 
 
     ```
 
-1. Create GCP Service Account (K8s Engine Admin), download to ~/Downloads
+1) Create GCP Service Account (K8s Engine Admin), download to ~/Downloads
    a. In GCP Console, select your "project" in top drop-down
    b. Select "IAM&Admin->IAM->ServiceAccounts"
    c. Click "Create Service Account"
    d. Click "Create Key" (type JSON), gets downloaded automatically
-1. Using handy ruby container, Encrypt downloaded JSON Private Key, Store in Repo
+1) Using handy ruby container, Encrypt downloaded JSON Private Key, Store in Repo
 
     ```
     [cburkin@LocalMac ~]
@@ -247,7 +261,7 @@ NOTE: "Indexes I have seen" is pulling from Postges container, while "Caculated 
 
     ```
 
-1. Add encrypted Service Account to repo
+1) Add encrypted Service Account to repo
 
     ```
 
@@ -265,7 +279,27 @@ NOTE: "Indexes I have seen" is pulling from Postges container, while "Caculated 
 
     ```
 
-1. Trigger Travis to deploy your project (uses .travis.yml in repo root)
+1) Trigger Travis to deploy your project (uses .travis.yml in repo root)
+
+    ```
+    [cburkin@LocalMac ~/code/udemy-k8s-part5-k8sProduction (master)]
+    $ git commit -am "Updated GCP service account, triggering Travis Build"
+    [master c3ad4b1] Updated GCP service account, triggering Travis Build
+    4 files changed, 224 insertions(+), 59 deletions(-)
+    rewrite .travis.yml (100%)
+    mode change 100644 => 120000
+    create mode 100644 03-k8s-production-googlecloud/gcp-service-account.json.enc
+
+    [cburkin@LocalMac ~/code/udemy-k8s-part5-k8sProduction (master)]
+    $ git push origin
+    Enumerating objects: 12, done.
+    Counting objects: 100% (11/11), done.
+    ...
+    To https://github.com/cburkins/udemy-k8s-part5-k8sProduction.git
+      14131fe..c3ad4b1  master -> master
+    ```
+
+1) Check status on Travis CI
 
 Removal of Cluster (Cleanup after done)
 

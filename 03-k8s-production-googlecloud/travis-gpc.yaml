@@ -14,14 +14,14 @@ before_install:
     - gcloud components install kubectl --quiet
     # Decrypt our Google Cloud credentials
     # Provided by "travis encrypt-file" command that I ran on my local machine
-    - openssl aes-256-cbc -K $encrypted_0c35eebf403c_key -iv $encrypted_0c35eebf403c_iv -in 03-k8s-production-googlecloud/gcp-service-account.json.enc -out udemy-k8s-01-28ee42cd1afb.json -d
+    - openssl aes-256-cbc -K $encrypted_0c35eebf403c_key -iv $encrypted_0c35eebf403c_iv -in 03-k8s-production-googlecloud/gcp-service-account.json.enc -out gcp-service-account.json -d
     # JSON file with GCP credentials was created by previous command
-    - gcloud auth activate-service-account --key-file udemy-k8s-01-28ee42cd1afb.json
+    - gcloud auth activate-service-account --key-file gcp-service-account.json
     # This is your PROJECT ID, not your project name (they are different)
     - gcloud config set project udemy-k8s-01
     - gcloud config set compute/zone us-east1-b
     # Tell gcloud which cluster we're using with kubernetes commands (CLUSTER NAME, not cluster ID)
-    - gcloud container clusters get-credentials udemy-k8s-standard-cluster-1
+    - gcloud container clusters get-credentials standard-cluster-1
     - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
     # Build with Dockerfile.dev since that has dependencies to run react test
     - docker build -t cburkins/react-test -f 03-k8s-production-googlecloud/client/Dockerfile.dev 03-k8s-production-googlecloud/client
