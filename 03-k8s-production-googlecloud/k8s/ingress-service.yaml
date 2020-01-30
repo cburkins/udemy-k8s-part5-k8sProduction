@@ -17,7 +17,7 @@ spec:
               - chadburkins.org
               - www.chadburkins.org
           # comes from certificate.yaml:spec:secretName
-          secretName: udemy-k8s-01-tls
+          secretName: udemy-k8s-01
     # rules:
     #     - http:
     #           paths:
