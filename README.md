@@ -22,23 +22,97 @@ NOTE: I've broken down the Udemy Course on K8s into five Github repos. This is t
 
 Each of three directories in this repo can be used for deployment in a different way
 
-### 01-docker-elasticbeanstalk
+### Option1: Elastic Beanstalk (01-docker-elasticbeanstalk)
 
 1. TBD
 
-### 02-k8s-development-minikube
+### Option2: Local Minkube Kubernetes (02-k8s-development-minikube)
 
 NOTE: these instructions are for minikube running via Virtualbox on a Mac
 
 1. Install virtualbox
 1. Install minikube
 1. minikube start (can verify "minikube" VM is running in Virtualbox)
-1. Create minikube cluster
-1. cd 02-k8s-development-minikube
-1. kubectl apply ./k8s
-1. minikube addons enable ingress
-1. minikube ip
-1. In browser, navigate to ip (port 80)
+1. Start and verify minikube
+
+    ```
+    $ minikube start
+    * minikube v1.6.2 on Darwin 10.14.6
+    * Selecting 'virtualbox' driver from existing profile (alternates: [hyperkit])
+    * Tip: Use 'minikube start -p <name>' to create a new cluster, or 'minikube delete' to delete this one.
+    * Starting existing virtualbox VM for "minikube" ...
+    * Waiting for the host to be provisioned ...
+    * Preparing Kubernetes v1.17.0 on Docker '19.03.5' ...
+    * Launching Kubernetes ...
+    * Done! kubectl is now configured to use "minikube"
+
+    $ minikube status
+    host: Running
+    kubelet: Running
+    apiserver: Running
+    kubeconfig: Configured
+
+    $ kubectl get nodes
+    NAME       STATUS   ROLES    AGE     VERSION
+    minikube   Ready    master   4d19h   v1.17.0
+    ```
+
+1. Enable ingress within minikube
+
+    ```
+    $ minikube addons enable ingress
+
+    * ingress was successfully enabled
+
+    ```
+
+1. Configure your cluster
+
+    ```
+    $ kubectl apply -f ./k8s
+    service/client-cluster-ip-service created
+    deployment.apps/client-deployment created
+    persistentvolumeclaim/database-persistent-volume-claim created
+    ingress.extensions/ingress-service created
+    service/postgres-cluster-ip-service created
+    deployment.apps/postgres-deployment created
+    service/redis-cluster-ip-service created
+    deployment.apps/redis-deployment created
+    service/server-cluster-ip-service created
+    deployment.apps/server-deployment created
+    deployment.apps/worker-deployment created
+
+    [cburkin@LocalMac ~/code/udemy-k8s-part5-k8sProduction/02-k8s-development-minikube (master)]
+    $ kubectl get pods
+    NAME                                  READY   STATUS    RESTARTS   AGE
+    client-deployment-646698fbd5-fjb44    1/1     Running   0          23s
+    client-deployment-646698fbd5-mrf9d    1/1     Running   0          23s
+    client-deployment-646698fbd5-pg5bt    1/1     Running   0          23s
+    postgres-deployment-78bc4cf96-tqzs9   1/1     Running   0          22s
+    redis-deployment-5f458546b8-q4g4s     1/1     Running   0          22s
+    server-deployment-865675d9c8-shbdm    1/1     Running   0          22s
+    worker-deployment-85c5cf8f4b-m252d    1/1     Running   0          22s
+
+    [cburkin@LocalMac ~/code/udemy-k8s-part5-k8sProduction/02-k8s-development-minikube (master)]
+    $ kubectl get services
+    NAME                          TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+    client-cluster-ip-service     ClusterIP   10.96.118.78    <none>        3000/TCP   29s
+    kubernetes                    ClusterIP   10.96.0.1       <none>        443/TCP    4d20h
+    postgres-cluster-ip-service   ClusterIP   10.96.204.84    <none>        5432/TCP   28s
+    redis-cluster-ip-service      ClusterIP   10.96.126.174   <none>        6379/TCP   28s
+    server-cluster-ip-service     ClusterIP   10.96.27.21     <none>        5000/TCP   28s
+    ```
+
+1. Navigate to your new cluster
+
+    ```
+    $ minikube ip
+    192.168.99.100
+
+    $ open -a "Google Chrome" http://192.168.99.100
+    ```
+
+1. Test: Enter a number between 1-39, submit. Refresh page to see results.
 
 Clean up:
 
@@ -51,20 +125,154 @@ Additional thoughts:
 
 1. minikube dashboard (see way down below)
 
-### 03-k8s-production-googlecloud
+Screenshot of running app
 
-1. cp ./03-k8s-production-googlecloud/travis-gcp.yaml ./.travis.yml
-1. Create Cluster on GCP (3 nodes ?)
-1. Create secret on GCP (for Postgres password)
+NOTE: "Indexes I have seen" is pulling from Postges container, while "Caculated Values" is pulling from Redis container
+
+![image](https://user-images.githubusercontent.com/9342308/73450375-421fe100-4333-11ea-8c0d-ab2adcf1f18b.png)
+
+### Option 3: Google Cloud Kubernetes (03-k8s-production-googlecloud)
+
+1. ln -s ./03-k8s-production-googlecloud/travis-gcp.yaml ./.travis.yml
+1. Create Project
+1. Create Cluster on GCP (Standard cluster, Zonal, 3 nodes, n1-standard-1)
+1. Click "Connect" button to open Google Cloud Shell (gives you the first connect command below)
+
+    ```
+    chad_burkins@cloudshell:~ (udemy-k8s-01)$ gcloud container clusters get-credentials standard-cluster-1 --zone us-east1-b --project udemy-k8s-01
+    Fetching cluster endpoint and auth data.
+    kubeconfig entry generated for standard-cluster-1.
+
+    chad_burkins@cloudshell:~ (udemy-k8s-01)$ kubectl get nodes
+    NAME                                                STATUS   ROLES    AGE     VERSION
+    gke-standard-cluster-1-default-pool-5c32e89e-1d2l   Ready    <none>   2m34s   v1.13.11-gke.23
+    gke-standard-cluster-1-default-pool-5c32e89e-5r9j   Ready    <none>   2m35s   v1.13.11-gke.23
+    gke-standard-cluster-1-default-pool-5c32e89e-7w50   Ready    <none>   2m34s   v1.13.11-gke.23
+    chad_burkins@cloudshell:~ (udemy-k8s-01)$
+    ```
+
+1. Create secret on GCP for Postgres password (use Google Cloud Console)
    a. kubectl create secret generic pgpassword --from-literal PGPASSWORD=[password]
 1. Install helm v3 on GCP
-1. Use helm to install ingress-nginx
+
+    ```
+    chad_burkins@cloudshell:~ (udemy-k8s-01)$ helm version
+    Client: &version.Version{SemVer:"v2.14.1", GitCommit:"5270352a09c7e8b6e8c9593002a73535276507c0", GitTreeState:"clean"}
+    Error: could not find tiller
+    ```
+
+
+    chad_burkins@cloudshell:~ (udemy-k8s-01)$ curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+      % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                    Dload  Upload   Total   Spent    Left  Speed
+    100  6617  100  6617    0     0  88557      0 --:--:-- --:--:-- --:--:-- 89418
+    Error: could not find tiller
+    Helm v3.0.3 is available. Changing from version .
+    Downloading https://get.helm.sh/helm-v3.0.3-linux-amd64.tar.gz
+    Preparing to install helm into /usr/local/bin
+    helm installed into /usr/local/bin/helm
+
+
+    chad_burkins@cloudshell:~ (udemy-k8s-01)$ helm version
+    version.BuildInfo{Version:"v3.0.3", GitCommit:"ac925eb7279f4a6955df663a0128044a8a6b7593", GitTreeState:"clean", GoVersion:"go1.13.6"}
+    ```
+
+1. Use helm to install ingress-nginx, and wait for your EXTERNAL-IP to show up
+
+    ```
+
+    chad_burkins@cloudshell:~ (udemy-k8s-01)$ helm install my-nginx stable/nginx-ingress --set rbac.create=true
+    NAME: my-nginx
+    LAST DEPLOYED: Thu Jan 30 10:45:06 2020
+    NAMESPACE: default
+    STATUS: deployed
+    REVISION: 1
+    TEST SUITE: None
+    NOTES:
+    The nginx-ingress controller has been installed.
+    It may take a few minutes for the LoadBalancer IP to be available.
+    You can watch the status by running 'kubectl --namespace default get services -o wide -w my-nginx-nginx-ingress-controller'
+
+    chad_burkins@cloudshell:~ (udemy-k8s-01)$ kubectl --namespace default get services -o wide -w my-nginx-nginx-ingress-controller
+    NAME                                TYPE           CLUSTER-IP    EXTERNAL-IP   PORT(S)                      AGE    SELECTOR
+    my-nginx-nginx-ingress-controller   LoadBalancer   10.75.14.53   34.73.45.96   80:31240/TCP,443:32059/TCP   2m5s   app=nginx-ingress,component=controller,release=my-nginx
+
+    ```
+
+1. Create GCP Service Account (K8s Engine Admin), download to ~/Downloads
+   a. In GCP Console, select your "project" in top drop-down
+   b. Select "IAM&Admin->IAM->ServiceAccounts"
+   c. Click "Create Service Account"
+   d. Click "Create Key" (type JSON), gets downloaded automatically
+1. Using handy ruby container, Encrypt downloaded JSON Private Key, Store in Repo
+
+    ```
+    [cburkin@LocalMac ~]
+    $ cd ~/Downloads/
+
+    [cburkin@LocalMac ~/Downloads]
+    $ docker run -it -v $(pwd):/app ruby:2.3 sh
+    Unable to find image 'ruby:2.3' locally
+    2.3: Pulling from library/ruby
+    e79bb959ec00: Pull complete
+    ...
+    ef485f36c624: Pull complete
+    Digest: sha256:78cc821d95c48621e577b6b0d44c9d509f0f2a4e089b9fd0ca2ae86f274773a8
+    Status: Downloaded newer image for ruby:2.3
+
+    # gem install travis
+    Fetching multipart-post-2.1.1.gem
+    Fetching net-http-persistent-2.9.4.gem
+    ...
+    Successfully installed pusher-client-0.6.2
+    Successfully installed travis-1.8.10
+    17 gems installed
+
+    # travis login
+    Shell completion not installed. Would you like to install it now? |y| n
+    Username: cburkins
+    Password for cburkins: ********
+    Successfully logged in as cburkins!
+
+    # cd /app
+    # ls -l *.json
+    -rw-r--r-- 1 root root 2349 Jan 30 16:33 udemy-k8s-01-970b868f2e9b.json
+
+    # travis encrypt-file udemy-k8s-01-970b868f2e9b.json -r cburkins/udemy-k8s-part5-k8sProduction
+    encrypting udemy-k8s-01-970b868f2e9b.json for cburkins/udemy-k8s-part5-k8sProduction
+    storing result as udemy-k8s-01-970b868f2e9b.json.enc
+    storing secure env variables for decryption
+
+    # exit
+
+    ```
+
+1. Add encrypted Service Account to repo
+
+    ```
+
+    [cburkin@LocalMac ~/Downloads]
+    $ mv udemy-k8s-01-970b868f2e9b.json.enc ~/code/udemy-k8s-part5-k8sProduction/03-k8s-production-googlecloud/gcp-service-account.json.enc
+
+    [cburkin@LocalMac ~/Downloads]
+    $ rm ~/Downloads/udemy-k8s-01-970b868f2e9b.json
+
+    [cburkin@LocalMac ~/Downloads]
+    $ cd ~/code/udemy-k8s-part5-k8sProduction/
+
+    [cburkin@LocalMac ~/code/udemy-k8s-part5-k8sProduction (master)]
+    $ git add 03-k8s-production-googlecloud/gcp-service-account.json.enc
+
+    ```
+
 1. Trigger Travis to deploy your project (uses .travis.yml in repo root)
 
 Removal of Cluster (Cleanup after done)
 
 1. GCP: Select correct Project
 1. GCP: Remove cluster (GCP->KubernetesEngine->Clusters)
+1. GCP: Delete Project
+1. GCP: Within IAM, remove your "deployer" service account
 
 ---
 
@@ -402,15 +610,9 @@ Commit all changes to your .travis.yml.
 
 ```
 
-## Helm
-
-Helm is a way to manage 3rd party tools inside your cluster
-
-1. Helm Client
-1. Tiller Server (which runs inside our kubernetes cluster)
-
 ## Installing Helm
 
+Helm is a way to manage 3rd party tools inside your cluster
 Reference: https://helm.sh/docs/intro/install/#from-script
 
 Install Helm v3 & configure repo
