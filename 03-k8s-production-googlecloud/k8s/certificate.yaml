@@ -1,0 +1,29 @@
+# Config file for cert manager helm chart to create https certificate
+#
+# apiVersion: certmanager.k8s.io/v1alph1
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+    name: udemy-k8s-01-tls
+spec:
+    # Specifies where new secret is store
+    secretName: udemy-k8s-01-tls
+    issuerRef:
+        # Comes from issuer.yaml file (privateKeySecretRef:name)
+        name: letsencrypt-prod
+        # Comes from issuer.yaml file (kind)
+        kind: ClusterIssuer
+    # Gets put on certificate
+    commonName: chadburkins.org
+    # Domains covered by this certificate
+    dnsNames:
+        - chadburkins.org
+        - www.chadburkins.org
+    acme:
+        config:
+            - http01:
+                  ingressClass: nginx
+              # domains that will be verified during verification process
+              domains:
+                  - chadburkins.org
+                  - www.chadburkins.org
