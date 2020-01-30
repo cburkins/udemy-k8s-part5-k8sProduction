@@ -5,9 +5,46 @@ metadata:
     annotations:
         kubernetes.io/ingress.class: nginx #Create controller based on nginx project
         nginx.ingress.kubernetes.io/rewrite-target: /$1 #removes the "/api", rewrites as "/"
+        # Added for https certificate, informs ingress to use https certificate from letsencrypt-prod
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+        # If user attempt http://domainname.org, will redirect to https://domainname.org
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+
 spec:
+    # entire "tls" section added for https config
+    tls:
+        - hosts:
+              - chadburkins.org
+              - www.chadburkins.org
+          # comes from certificate.yaml:spec:secretName
+          secretName: udemy-k8s-01-tls
+    # rules:
+    #     - http:
+    #           paths:
+    #               - path: /?(.*)
+    #                 backend:
+    #                     serviceName: client-cluster-ip-service
+    #                     servicePort: 3000
+    #               - path: /api/?(.*)
+    #                 backend:
+    #                     serviceName: server-cluster-ip-service
+    #                     servicePort: 5000
+
+    # For https config, need to slightly modify, and double up for domain.org and www.domain.org
     rules:
-        - http:
+        - host: chadburkins.org
+          http:
+              paths:
+                  - path: /?(.*)
+                    backend:
+                        serviceName: client-cluster-ip-service
+                        servicePort: 3000
+                  - path: /api/?(.*)
+                    backend:
+                        serviceName: server-cluster-ip-service
+                        servicePort: 5000
+        - host: www.chadburkins.org
+          http:
               paths:
                   - path: /?(.*)
                     backend:

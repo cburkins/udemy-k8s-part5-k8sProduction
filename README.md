@@ -807,3 +807,65 @@ Setup Cert Manager
     Instructions: https://cert-manager.io/docs/configuration/acme/
 
 1. Create certificate.yaml
+1. Retrieve certificate from LetsEncrypt (push to master, wait for Travis)
+1. Verify certificates receives (all within GCP Cloud Console)
+
+    NOTE: Should match certificat.yaml:spec:secretName
+
+    ```
+    chad_burkins@cloudshell:~ (udemy-k8s-01)$ kubectl get certificates
+    NAME               READY   SECRET             AGE
+    udemy-k8s-01-tls   True    udemy-k8s-01-tls   2m
+
+    chad_burkins@cloudshell:~ (udemy-k8s-01)$ kubectl describe certificates
+    Name:         udemy-k8s-01-tls
+    Namespace:    default
+    Labels:       <none>
+    Annotations:  kubectl.kubernetes.io/last-applied-configuration:
+                    {"apiVersion":"cert-manager.io/v1alpha2","kind":"Certificate","metadata":{"annotations":{},"name":"udemy-k8s-01-tls","namespace":"default"...
+    API Version:  cert-manager.io/v1alpha2
+    Kind:         Certificate
+    Metadata:
+    Creation Timestamp:  2020-01-30T20:50:48Z
+    Generation:          1
+    Resource Version:    73075
+    Self Link:           /apis/cert-manager.io/v1alpha2/namespaces/default/certificates/udemy-k8s-01-tls
+    UID:                 319ae904-43a2-11ea-9356-42010a8e021c
+    Spec:
+    Common Name:  chadburkins.org
+    Dns Names:
+        chadburkins.org
+        www.chadburkins.org
+    Issuer Ref:
+        Kind:       ClusterIssuer
+        Name:       letsencrypt-prod
+    Secret Name:  udemy-k8s-01-tls
+    Status:
+    Conditions:
+        Last Transition Time:  2020-01-30T20:51:26Z
+        Message:               Certificate is up to date and has not expired
+        Reason:                Ready
+        Status:                True
+        Type:                  Ready
+    Not After:               2020-04-29T19:51:25Z
+    Events:
+    Type    Reason        Age    From          Message
+    ----    ------        ----   ----          -------
+    Normal  GeneratedKey  2m18s  cert-manager  Generated a new private key
+    Normal  Requested     2m18s  cert-manager  Created new CertificateRequest resource "udemy-k8s-01-tls-1830995130"
+    Normal  Issued        101s   cert-manager  Certificate issued successfully
+
+    chad_burkins@cloudshell:~ (udemy-k8s-01)$ kubectl get secrets
+    NAME                                         TYPE                                  DATA   AGE
+    default-token-v5nqw                          kubernetes.io/service-account-token   3      5h17m
+    my-nginx-nginx-ingress-backend-token-5fmdh   kubernetes.io/service-account-token   3      5h8m
+    my-nginx-nginx-ingress-token-6zvm7           kubernetes.io/service-account-token   3      5h8m
+    pgpassword                                   Opaque                                1      5h13m
+    sh.helm.release.v1.my-nginx.v1               helm.sh/release.v1                    1      5h8m
+    udemy-k8s-01-tls                             kubernetes.io/tls                     3      2m35s
+    ```
+
+1. Update ingress-service.yaml to use certificate
+    - Add annotations for nginx and certmanager
+    - Add "tls" section to spec
+    - Add rules for domainname.org and www.domainname.org

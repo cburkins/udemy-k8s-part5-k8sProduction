@@ -6,7 +6,7 @@ kind: Certificate
 metadata:
     name: udemy-k8s-01-tls
 spec:
-    # Specifies where new secret is store
+    # Specifies where new secret is stored, referenced in ingress-service.yaml
     secretName: udemy-k8s-01-tls
     issuerRef:
         # Comes from issuer.yaml file (privateKeySecretRef:name)
