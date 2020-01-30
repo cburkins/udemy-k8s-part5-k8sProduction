@@ -10,7 +10,7 @@ NOTE: I've broken down the Udemy Course on K8s into five Github repos. This is t
 -   Part 4: Deploy on local (minikube) Kubernetes (good for local development). Started with YAML files for simple one-pod configurations, finished with "Deployments" that can create/manage multiple pods that each run same image. Probably Section 13 (Lectures 188 through 203)
 -   **Part 5: The Path to Production: Production-grade deployment on minikube, then deploy on GCP Kubernetes, using helm v3. Sections 14,15,16**
 
-#### Directories in repo
+#### Directories in this repo
 
 -   01-docker-elasticbeanstalk: Copied from Part 3, not modified
 -   02-k8s-development-minikube: Copied from "01", created 11 yaml files in "k8s" directory to build up a product-grade k8s deployment. Tested on minikube running "kubectl apply -f ./k8s"
@@ -178,20 +178,15 @@ NOTE: "Indexes I have seen" is pulling from Postges container, while "Caculated 
     version.BuildInfo{Version:"v3.0.3", GitCommit:"ac925eb7279f4a6955df663a0128044a8a6b7593", GitTreeState:"clean", GoVersion:"go1.13.6"}
     ```
 
-1. Configure travis.yml file in repo to point towards your new cluster
+1. Get your Project ID, Cluster Name, Cluster Zone, Cluster ID
 
-    - Get cluster name from GCP console
+    ![image](https://user-images.githubusercontent.com/9342308/73476558-7cec3e00-4360-11ea-993f-fee9261f951c.png)
 
-    ![image](https://user-images.githubusercontent.com/9342308/73472873-c1c0a680-4359-11ea-8ffb-6b9c34547de8.png)
-
-    - Edit, and find line "gcloud container clusters get-credentials", put this name at end
-      &nbsp;
-
-1. Configure travis.yml file in repo for <b>Cluster ID</b> and <b>Cluster Name</b>
+1. Configure travis-gcp.yml file in repo for <b>Cluster ID</b> and <b>Cluster Name</b>
 
     ![image](https://user-images.githubusercontent.com/9342308/73473475-d9e4f580-435a-11ea-9e78-77d1b7119dcc.png)
 
-1) Use helm to install ingress-nginx, and wait for your EXTERNAL-IP to show up
+1. Use helm to install ingress-nginx, and wait for your EXTERNAL-IP to show up
 
     ```
 
@@ -213,12 +208,12 @@ NOTE: "Indexes I have seen" is pulling from Postges container, while "Caculated 
 
     ```
 
-1) Create GCP Service Account (K8s Engine Admin), download to ~/Downloads
+1. Create GCP Service Account (K8s Engine Admin), download to ~/Downloads
    a. In GCP Console, select your "project" in top drop-down
    b. Select "IAM&Admin->IAM->ServiceAccounts"
    c. Click "Create Service Account"
    d. Click "Create Key" (type JSON), gets downloaded automatically
-1) Using handy ruby container, Encrypt downloaded JSON Private Key, Store in Repo
+1. Using handy ruby container, Encrypt downloaded JSON Private Key, Store in Repo
 
     ```
     [cburkin@LocalMac ~]
@@ -261,7 +256,7 @@ NOTE: "Indexes I have seen" is pulling from Postges container, while "Caculated 
 
     ```
 
-1) Add encrypted Service Account to repo
+1. Add encrypted Service Account to repo
 
     ```
 
@@ -279,7 +274,7 @@ NOTE: "Indexes I have seen" is pulling from Postges container, while "Caculated 
 
     ```
 
-1) Trigger Travis to deploy your project (uses .travis.yml in repo root)
+1. Trigger Travis to deploy your project (uses .travis.yml in repo root)
 
     ```
     [cburkin@LocalMac ~/code/udemy-k8s-part5-k8sProduction (master)]
@@ -299,14 +294,20 @@ NOTE: "Indexes I have seen" is pulling from Postges container, while "Caculated 
       14131fe..c3ad4b1  master -> master
     ```
 
-1) Check status on Travis CI
+1. Check status on Travis CI
+
+    ![image](https://user-images.githubusercontent.com/9342308/73476723-cb99d800-4360-11ea-8cfd-0da5eedf62b3.png)
+
+1. Test by going to public IP of GCP Cluster
+
+    NOTE: "Indexes I have seen" is pulling from Postges container, while "Caculated Values" is pulling from Redis container
+
+    ![image](https://user-images.githubusercontent.com/9342308/73476982-62ff2b00-4361-11ea-8842-441a63e0cdc6.png)
 
 Removal of Cluster (Cleanup after done)
 
-1. GCP: Select correct Project
-1. GCP: Remove cluster (GCP->KubernetesEngine->Clusters)
-1. GCP: Delete Project
-1. GCP: Within IAM, remove your "deployer" service account
+1. GCP: Select correct Project in top left, select "Settings in the top right"
+1. GCP: Select "Shut Down" (probably will delete Cluster, IAM Service Account, check to be sure)
 
 ---
 
@@ -714,3 +715,95 @@ Click on the "Port 80" address, and you should see this (ingress will show this 
 After pushing our completed deployment package into Github, now we can see both the external IP addresses plus the routes
 
 ![image](https://user-images.githubusercontent.com/9342308/73387002-d3447880-429d-11ea-9ec8-a5df52211acd.png)
+
+### Setup HTTPS for Kubernetes Cluster
+
+Overview
+
+![image](https://user-images.githubusercontent.com/9342308/73485839-df9a0580-4371-11ea-8c82-49891242426f.png)
+
+Purchase a domain
+
+1. Purchase domain name at https://domains.google.com
+1. Within your new domain, go to "DNS Settings"
+1. Go down to "Custom Resource Records"
+1. Add A record that send domain name to cluster IP address
+    1. name=@, Type=A, TTL=5m, Data=[IPAddress]
+1. Add CNAME record that send www.domainname.org to domainname.org
+    1. name=www, Type=CNAME, TTL=5m, Data=[domainname.org]
+
+Setup Cert Manager
+
+1. Open your Google Cloud Shell by clicking on "Connect"
+1. Verify that you've got helm v3
+
+    ```
+    chad_burkins@cloudshell:~ (udemy-k8s-01)$ helm version
+    Client: &version.Version{SemVer:"v2.14.1", GitCommit:"5270352a09c7e8b6e8c9593002a73535276507c0", GitTreeState:"clean"}
+    Error: could not find tiller
+
+    chad_burkins@cloudshell:~ (udemy-k8s-01)$ curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+    Helm v3.0.3 is available. Changing from version .
+    Downloading https://get.helm.sh/helm-v3.0.3-linux-amd64.tar.gz
+    Preparing to install helm into /usr/local/bin
+    helm installed into /usr/local/bin/helm
+
+    chad_burkins@cloudshell:~ (udemy-k8s-01)$ helm version
+    version.BuildInfo{Version:"v3.0.3", GitCommit:"ac925eb7279f4a6955df663a0128044a8a6b7593", GitTreeState:"clean", GoVersion:"go1.13.6"}
+
+    ```
+
+1. Setup
+
+    ```
+    chad_burkins@cloudshell:~ (udemy-k8s-01)$ kubectl apply --validate=false -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.11/deploy/manifests/00-crds.yaml
+    customresourcedefinition.apiextensions.k8s.io/challenges.acme.cert-manager.io created
+    customresourcedefinition.apiextensions.k8s.io/orders.acme.cert-manager.io created
+    customresourcedefinition.apiextensions.k8s.io/certificaterequests.cert-manager.io created
+    customresourcedefinition.apiextensions.k8s.io/certificates.cert-manager.io created
+    customresourcedefinition.apiextensions.k8s.io/clusterissuers.cert-manager.io created
+    customresourcedefinition.apiextensions.k8s.io/issuers.cert-manager.io created
+    ```
+
+
+    chad_burkins@cloudshell:~ (udemy-k8s-01)$ kubectl create namespace cert-manager
+    namespace/cert-manager created
+
+    chad_burkins@cloudshell:~ (udemy-k8s-01)$ helm repo add jetstack https://charts.jetstack.io
+    "jetstack" has been added to your repositories
+
+    chad_burkins@cloudshell:~ (udemy-k8s-01)$ helm repo update
+    Hang tight while we grab the latest from your chart repositories...
+    ...Successfully got an update from the "jetstack" chart repository
+    ...Successfully got an update from the "stable" chart repository
+    Update Complete. ⎈ Happy Helming!⎈
+    ```
+
+1. Install cert-manager Helm chart
+
+    ```
+    chad_burkins@cloudshell:~ (udemy-k8s-01)$ helm install cert-manager --namespace cert-manager --version v0.11.0 jetstack/cert-manager
+    NAME: cert-manager
+    LAST DEPLOYED: Thu Jan 30 14:48:53 2020
+    NAMESPACE: cert-manager
+    STATUS: deployed
+    REVISION: 1
+    TEST SUITE: None
+    NOTES:
+    cert-manager has been deployed successfully!
+    In order to begin issuing certificates, you will need to set up a ClusterIssuer
+    or Issuer resource (for example, by creating a 'letsencrypt-staging' issuer).
+    More information on the different types of issuers and how to configure them
+    can be found in our documentation:
+    https://docs.cert-manager.io/en/latest/reference/issuers.html
+    For information on how to configure cert-manager to automatically provision
+    Certificates for Ingress resources, take a look at the `ingress-shim`
+    documentation:
+    https://docs.cert-manager.io/en/latest/reference/ingress-shim.html
+    ```
+
+1. Create issuer.yaml
+
+    Instructions: https://cert-manager.io/docs/configuration/acme/
+
+1. Create certificate.yaml
