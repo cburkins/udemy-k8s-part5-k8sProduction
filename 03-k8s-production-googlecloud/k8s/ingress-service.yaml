@@ -2,21 +2,26 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
     name: ingress-service
+    # nginx-ingress annotation docs: https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/
+    # cert-manager annotation docs: https://cert-manager.io/docs/usage/ingress/
     annotations:
+        # nginx ingress pkg will discover all ingress with this annotation
         kubernetes.io/ingress.class: nginx #Create controller based on nginx project
-        nginx.ingress.kubernetes.io/rewrite-target: /$1 #removes the "/api", rewrites as "/"
-        # Added for https certificate, informs ingress to use https certificate from letsencrypt-prod
-        # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+        # removes the "/api", rewrites as "/"
+        nginx.ingress.kubernetes.io/rewrite-target: /$1
+        # Needed for https, informs ingress to use https certificate from resource named "letsencrypt-prod" (defined by issuer.yaml)
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
         # If user attempt http://domainname.org, will redirect to https://domainname.org
         # nginx.ingress.kubernetes.io/ssl-redirect: "true"
 
 spec:
     # entire "tls" section added for https config
+    # Placing a host in tls config will signal that a certificate should be created
     # tls:
     #     - hosts:
     #           - chadburkins.org
     #           - www.chadburkins.org
-    #           # comes from certificate.yaml:spec:secretName
+    #           # cert-manager will store created certificate in this secret, matches certificate.yaml:spec:secretName
     #       secretName: udemy-k8s-01
     # Original rules before https config
     # rules:

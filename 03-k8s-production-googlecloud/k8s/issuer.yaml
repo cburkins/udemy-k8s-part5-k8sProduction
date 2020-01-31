@@ -1,20 +1,33 @@
 # Config file for cert manager helm chart to create https certificate
 #
 # Instructions: https://cert-manager.io/docs/configuration/acme/
+# Automated Certificate Management Enviroment (ACME)
+# ACME is a form of Certificate Authority (CA)
+# Purpose of a CA is to confirm that you indeed own the Domain that you claim to
+# ACME CA issues an HTTP01 challenge  (RFC8555)
+# cert-manager configures nginx-ingress to respond correctly to that incoming challenge from cert-manager ACME CA
+#
+#
 # apiVersion: certmanager.k8s.io/v1alpha1
 apiVersion: cert-manager.io/v1alpha2
 kind: ClusterIssuer
 metadata:
+    # We are defining a ClusterIssuer resource named "letsencrypt-prod"
     name: letsencrypt-prod
 spec:
     acme:
         server: https://acme-v02.api.letsencrypt.org/directory
+        # LetsEncrypt will contact this email about expiring certificates
         email: "chad.burkins@gmail.com"
+        # k8s "secret" resource used to store private key
         privateKeySecretRef:
             name: letsencrypt-prod
         # Select method for obtaining certificate
         # http01: {}
         solvers:
+            # challenge solver can be HTTP01 or DNS01 (see RFC8555)
+            # Docs for HTTP01: https://cert-manager.io/docs/configuration/acme/http01/
             - http01:
+                  # cert-manager will create new "Ingress" resources (in k8s) to route traffic to acmesolver pods
                   ingress:
                       class: nginx

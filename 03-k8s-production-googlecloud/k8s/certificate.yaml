@@ -1,4 +1,7 @@
-# Config file for cert manager helm chart to create https certificate
+# Once issuer is configured (issuer.yaml), Certificate resources can be created
+# In order to issue any certificates, you'll need to configure an "Issuer" resource first
+#
+#
 #
 # apiVersion: certmanager.k8s.io/v1alph1
 apiVersion: cert-manager.io/v1alpha2
@@ -7,16 +10,22 @@ metadata:
     # Name of certificate within kubernetes
     name: udemy-k8s-01-tls-certificate
 spec:
+    # Optional: specifies how long this cerificate is value for
+    duration: 2160h # 90d
+    # Optional: specifies when to renew this certificate with issuer
+    renewBefore: 360h # 15d
     # Kubernetes "secret" object name, referenced in ingress-service.yaml
+    # This is where signed certificate will be stored, once issuer sends requested certificate
     secretName: udemy-k8s-01
+    # Required, this
     issuerRef:
-        # Comes from issuer.yaml file (privateKeySecretRef:name)
+        # Defined in issuer.yaml file (privateKeySecretRef:name)
         name: letsencrypt-prod
-        # Comes from issuer.yaml file (kind)
+        # matches issuer.yaml file (kind)
         kind: ClusterIssuer
-    # Gets put on certificate
+    # Gets put on certificate (docs says deprecated)
     commonName: chadburkins.org
-    # Domains covered by this certificate
+    # Domains covered by this certificate, at least one is required
     dnsNames:
         - chadburkins.org
         - www.chadburkins.org
