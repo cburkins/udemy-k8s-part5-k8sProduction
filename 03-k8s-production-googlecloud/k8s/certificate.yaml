@@ -4,7 +4,7 @@
 apiVersion: cert-manager.io/v1alpha2
 kind: Certificate
 metadata:
-    name: udemy-k8s-01-tls
+    name: udemy-k8s-01-tls-certificate
 spec:
     # Specifies where new secret is stored, referenced in ingress-service.yaml
     secretName: udemy-k8s-01
