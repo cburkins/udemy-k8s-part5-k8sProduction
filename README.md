@@ -224,7 +224,7 @@ NOTE: "Indexes I have seen" is pulling from Postges container, while "Caculated 
     $ cd ~/Downloads/
 
     [cburkin@LocalMac ~/Downloads]
-    $ docker run -it -v $(pwd):/app ruby:2.3 sh
+    $ docker run -it -v $(pwd):/app ruby:2.7 sh
     Unable to find image 'ruby:2.3' locally
     2.3: Pulling from library/ruby
     e79bb959ec00: Pull complete
@@ -260,7 +260,7 @@ NOTE: "Indexes I have seen" is pulling from Postges container, while "Caculated 
 
     ```
 
-1. Add encrypted Service Account to repo
+1. Add that same encrypted file (Service Account) to repo
 
     ```
 
@@ -281,7 +281,11 @@ NOTE: "Indexes I have seen" is pulling from Postges container, while "Caculated 
 1. Trigger Travis to deploy your project (uses .travis.yml in repo root)
 
     ```
-    [cburkin@LocalMac ~/code/udemy-k8s-part5-k8sProduction (master)]
+    $ pwd
+    /Users/cburkin/code/udemy-k8s-part5-k8sProduction
+
+    $ git add .
+
     $ git commit -am "Updated GCP service account, triggering Travis Build"
     [master c3ad4b1] Updated GCP service account, triggering Travis Build
     4 files changed, 224 insertions(+), 59 deletions(-)
@@ -289,7 +293,6 @@ NOTE: "Indexes I have seen" is pulling from Postges container, while "Caculated 
     mode change 100644 => 120000
     create mode 100644 03-k8s-production-googlecloud/gcp-service-account.json.enc
 
-    [cburkin@LocalMac ~/code/udemy-k8s-part5-k8sProduction (master)]
     $ git push origin
     Enumerating objects: 12, done.
     Counting objects: 100% (11/11), done.
@@ -736,23 +739,37 @@ Purchase a domain
 1. Add CNAME record that send www.domainname.org to domainname.org
     1. name=www, Type=CNAME, TTL=5m, Data=[domainname.org]
 
-Setup Cert Manager
+##### Setup Cert Manager (Option1: Without Helm)
+
+Reference: https://cert-manager.io/docs/installation/kubernetes/
+
+```
+$ kubectl create namespace cert-manager
+namespace/cert-manager created
+
+$ kubectl create clusterrolebinding cluster-admin-binding \
+>   --clusterrole=cluster-admin \
+>   --user=$(gcloud config get-value core/account)
+Your active configuration is: [cloudshell-12698]
+clusterrolebinding.rbac.authorization.k8s.io/cluster-admin-binding created
+
+$ kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.13.0/cert-manager.yaml
+customresourcedefinition.apiextensions.k8s.io/certificaterequests.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/certificates.cert-manager.io created
+...
+deployment.apps/cert-manager-webhook created
+mutatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook created
+validatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook created
+
+```
+
+##### Setup Cert Manager (Option2: Helm)
 
 1. Open your Google Cloud Shell by clicking on "Connect"
 1. Verify that you've got helm v3
 
     ```
-    chad_burkins@cloudshell:~ (udemy-k8s-01)$ helm version
-    Client: &version.Version{SemVer:"v2.14.1", GitCommit:"5270352a09c7e8b6e8c9593002a73535276507c0", GitTreeState:"clean"}
-    Error: could not find tiller
-
-    chad_burkins@cloudshell:~ (udemy-k8s-01)$ curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-    Helm v3.0.3 is available. Changing from version .
-    Downloading https://get.helm.sh/helm-v3.0.3-linux-amd64.tar.gz
-    Preparing to install helm into /usr/local/bin
-    helm installed into /usr/local/bin/helm
-
-    chad_burkins@cloudshell:~ (udemy-k8s-01)$ helm version
+    $ helm version
     version.BuildInfo{Version:"v3.0.3", GitCommit:"ac925eb7279f4a6955df663a0128044a8a6b7593", GitTreeState:"clean", GoVersion:"go1.13.6"}
 
     ```
@@ -803,6 +820,8 @@ Setup Cert Manager
     documentation:
     https://docs.cert-manager.io/en/latest/reference/ingress-shim.html
     ```
+
+##### Cert-Manager Configuration
 
 1. Create issuer.yaml
 

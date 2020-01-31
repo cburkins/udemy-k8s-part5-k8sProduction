@@ -4,9 +4,10 @@
 apiVersion: cert-manager.io/v1alpha2
 kind: Certificate
 metadata:
+    # Name of certificate within kubernetes
     name: udemy-k8s-01-tls-certificate
 spec:
-    # Specifies where new secret is stored, referenced in ingress-service.yaml
+    # Kubernetes "secret" object name, referenced in ingress-service.yaml
     secretName: udemy-k8s-01
     issuerRef:
         # Comes from issuer.yaml file (privateKeySecretRef:name)

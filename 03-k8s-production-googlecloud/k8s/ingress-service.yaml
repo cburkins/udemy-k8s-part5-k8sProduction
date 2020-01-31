@@ -8,16 +8,17 @@ metadata:
         # Added for https certificate, informs ingress to use https certificate from letsencrypt-prod
         cert-manager.io/cluster-issuer: "letsencrypt-prod"
         # If user attempt http://domainname.org, will redirect to https://domainname.org
-        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        # nginx.ingress.kubernetes.io/ssl-redirect: "true"
 
 spec:
     # entire "tls" section added for https config
-    tls:
-        - hosts:
-              - chadburkins.org
-              - www.chadburkins.org
-              # comes from certificate.yaml:spec:secretName
-          secretName: udemy-k8s-01
+    # tls:
+    #     - hosts:
+    #           - chadburkins.org
+    #           - www.chadburkins.org
+    #           # comes from certificate.yaml:spec:secretName
+    #       secretName: udemy-k8s-01
+    # Original rules before https config
     # rules:
     #     - http:
     #           paths:
