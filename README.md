@@ -974,3 +974,14 @@ chad_burkins@cloudshell:~ (udemy-k8s-02)$ kubectl --namespace default get servic
 NAME                                TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)                      AGE     SELECTOR
 my-nginx-nginx-ingress-controller   LoadBalancer   10.70.13.233   104.197.27.96   80:31920/TCP,443:30107/TCP   3h27m   app=nginx-ingress,component=controller,release=my-nginx
 ```
+
+##### See your Issuers and Certificates
+
+```
+$ kubectl get issuer,clusterissuer,certificate --all-namespaces
+NAME                                             READY   AGE
+clusterissuer.cert-manager.io/letsencrypt-prod   True    3h
+
+NAMESPACE   NAME                                                       READY   SECRET         AGE
+default     certificate.cert-manager.io/udemy-k8s-01-tls-certificate   True    udemy-k8s-01   3h
+```

@@ -10,6 +10,8 @@ metadata:
         # removes the "/api", rewrites as "/"
         nginx.ingress.kubernetes.io/rewrite-target: /$1
         # Needed for https, informs ingress to use https certificate from resource named "letsencrypt-prod" (defined by issuer.yaml)
+        # ingress-shim (cert-manager) looks for Ingress resources with this annotation, then ingres-shim will ensure that a Certificate resource exists,
+        #   stored in name provided by spec.tls.secretName
         cert-manager.io/cluster-issuer: "letsencrypt-prod"
         # If user attempt http://domainname.org, will redirect to https://domainname.org
         # nginx.ingress.kubernetes.io/ssl-redirect: "true"
@@ -17,6 +19,8 @@ metadata:
 spec:
     # entire "tls" section added for https config
     # Placing a host in tls config will signal that a certificate should be created
+    tls:
+        - secretName: udemy-k8s-01
     # tls:
     #     - hosts:
     #           - chadburkins.org

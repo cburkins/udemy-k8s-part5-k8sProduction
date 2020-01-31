@@ -7,7 +7,7 @@
 apiVersion: cert-manager.io/v1alpha2
 kind: Certificate
 metadata:
-    # Name of certificate within kubernetes
+    # Name of certificate resource within kubernetes
     name: udemy-k8s-01-tls-certificate
 spec:
     # Optional: specifies how long this cerificate is value for
