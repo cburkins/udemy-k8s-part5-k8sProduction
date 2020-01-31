@@ -18,10 +18,10 @@ before_install:
     # JSON file with GCP credentials was created by previous command
     - gcloud auth activate-service-account --key-file gcp-service-account.json
     # This is your PROJECT ID, not your project name (they are different)
-    - gcloud config set project udemy-k8s-01
-    - gcloud config set compute/zone us-east1-b
+    - gcloud config set project udemy-k8s-02
+    - gcloud config set compute/zone us-central1-a
     # Tell gcloud which cluster we're using with kubernetes commands (CLUSTER NAME, not cluster ID)
-    - gcloud container clusters get-credentials standard-cluster-1
+    - gcloud container clusters get-credentials standard-cluster-2
     - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
     # Build with Dockerfile.dev since that has dependencies to run react test
     - docker build -t cburkins/react-test -f 03-k8s-production-googlecloud/client/Dockerfile.dev 03-k8s-production-googlecloud/client

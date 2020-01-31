@@ -135,16 +135,16 @@ NOTE: "Indexes I have seen" is pulling from Postges container, while "Caculated 
 
 1. Within Travis CI (.org), enable this repo
 1. ln -s ./03-k8s-production-googlecloud/travis-gcp.yaml ./.travis.yml
-1. Create Project
-1. Create Cluster on GCP (Standard cluster, Zonal, 3 nodes, n1-standard-1)
-1. Click "Connect" button to open Google Cloud Shell (gives you the first connect command below)
+1. GCP: Create Project
+1. GCP: Create Cluster (Standard cluster, Zonal, 3 nodes, n1-standard-1)
+1. Verify: Click "Connect" button to open Google Cloud Shell (<b>gives you the first connect command below</b>)
 
     ```
-    chad_burkins@cloudshell:~ (udemy-k8s-01)$ gcloud container clusters get-credentials standard-cluster-1 --zone us-east1-b --project udemy-k8s-01
+    $ gcloud container clusters get-credentials standard-cluster-1 --zone us-east1-b --project udemy-k8s-01
     Fetching cluster endpoint and auth data.
     kubeconfig entry generated for standard-cluster-1.
 
-    chad_burkins@cloudshell:~ (udemy-k8s-01)$ kubectl get nodes
+    $ kubectl get nodes
     NAME                                                STATUS   ROLES    AGE     VERSION
     gke-standard-cluster-1-default-pool-5c32e89e-1d2l   Ready    <none>   2m34s   v1.13.11-gke.23
     gke-standard-cluster-1-default-pool-5c32e89e-5r9j   Ready    <none>   2m35s   v1.13.11-gke.23
@@ -153,29 +153,9 @@ NOTE: "Indexes I have seen" is pulling from Postges container, while "Caculated 
     ```
 
 1. Create secret on GCP for Postgres password (use Google Cloud Console)
-   a. kubectl create secret generic pgpassword --from-literal PGPASSWORD=[password]
-1. Install helm v3 on GCP
 
     ```
-    chad_burkins@cloudshell:~ (udemy-k8s-01)$ helm version
-    Client: &version.Version{SemVer:"v2.14.1", GitCommit:"5270352a09c7e8b6e8c9593002a73535276507c0", GitTreeState:"clean"}
-    Error: could not find tiller
-    ```
-
-
-    chad_burkins@cloudshell:~ (udemy-k8s-01)$ curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-      % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                    Dload  Upload   Total   Spent    Left  Speed
-    100  6617  100  6617    0     0  88557      0 --:--:-- --:--:-- --:--:-- 89418
-    Error: could not find tiller
-    Helm v3.0.3 is available. Changing from version .
-    Downloading https://get.helm.sh/helm-v3.0.3-linux-amd64.tar.gz
-    Preparing to install helm into /usr/local/bin
-    helm installed into /usr/local/bin/helm
-
-
-    chad_burkins@cloudshell:~ (udemy-k8s-01)$ helm version
-    version.BuildInfo{Version:"v3.0.3", GitCommit:"ac925eb7279f4a6955df663a0128044a8a6b7593", GitTreeState:"clean", GoVersion:"go1.13.6"}
+    $ kubectl create secret generic pgpassword --from-literal PGPASSWORD=[password]
     ```
 
 1. Get your Project ID, Cluster Name, Cluster Zone, Cluster ID
@@ -186,11 +166,31 @@ NOTE: "Indexes I have seen" is pulling from Postges container, while "Caculated 
 
     ![image](https://user-images.githubusercontent.com/9342308/73473475-d9e4f580-435a-11ea-9e78-77d1b7119dcc.png)
 
-1. Use helm to install ingress-nginx, and wait for your EXTERNAL-IP to show up
+1. CloudShell: Install helm v3 on GCP
 
     ```
+    $ helm version
+    Client: &version.Version{SemVer:"v2.14.1", GitCommit:"5270352a09c7e8b6e8c9593002a73535276507c0", GitTreeState:"clean"}
+    Error: could not find tiller
 
-    chad_burkins@cloudshell:~ (udemy-k8s-01)$ helm install my-nginx stable/nginx-ingress --set rbac.create=true
+    $ curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+      % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                    Dload  Upload   Total   Spent    Left  Speed
+    100  6617  100  6617    0     0  88557      0 --:--:-- --:--:-- --:--:-- 89418
+    Error: could not find tiller
+    Helm v3.0.3 is available. Changing from version .
+    Downloading https://get.helm.sh/helm-v3.0.3-linux-amd64.tar.gz
+    Preparing to install helm into /usr/local/bin
+    helm installed into /usr/local/bin/helm
+
+    $ helm version
+    version.BuildInfo{Version:"v3.0.3", GitCommit:"ac925eb7279f4a6955df663a0128044a8a6b7593", GitTreeState:"clean", GoVersion:"go1.13.6"}
+    ```
+
+1. CloudShell: Use helm to install nginx-ingress, and wait for your EXTERNAL-IP to show up
+
+    ```
+    $ helm install my-nginx stable/nginx-ingress --set rbac.create=true
     NAME: my-nginx
     LAST DEPLOYED: Thu Jan 30 10:45:06 2020
     NAMESPACE: default
@@ -202,17 +202,21 @@ NOTE: "Indexes I have seen" is pulling from Postges container, while "Caculated 
     It may take a few minutes for the LoadBalancer IP to be available.
     You can watch the status by running 'kubectl --namespace default get services -o wide -w my-nginx-nginx-ingress-controller'
 
-    chad_burkins@cloudshell:~ (udemy-k8s-01)$ kubectl --namespace default get services -o wide -w my-nginx-nginx-ingress-controller
+    $ kubectl --namespace default get services -o wide my-nginx-nginx-ingress-controller
     NAME                                TYPE           CLUSTER-IP    EXTERNAL-IP   PORT(S)                      AGE    SELECTOR
     my-nginx-nginx-ingress-controller   LoadBalancer   10.75.14.53   34.73.45.96   80:31240/TCP,443:32059/TCP   2m5s   app=nginx-ingress,component=controller,release=my-nginx
-
     ```
 
-1. Create GCP Service Account (K8s Engine Admin), download to ~/Downloads
-   a. In GCP Console, select your "project" in top drop-down
+1. Update your DNS A Record for your domain to point at this IP address
+
+1. Create account so Travis can install your cluster, download to ~/Downloads
+   a. In GCP Console, verify correct "project" is selected in top drop-down
    b. Select "IAM&Admin->IAM->ServiceAccounts"
-   c. Click "Create Service Account"
-   d. Click "Create Key" (type JSON), gets downloaded automatically
+   c. Click "Create Service Account" (suggested name: projectName_travis_installer_acct)
+   d. Click "Create"
+   e. Use "K8s Engine Admin" role
+   d. Click "+Create Key" (type JSON), downloads automatically
+
 1. Using handy ruby container, Encrypt downloaded JSON Private Key, Store in Repo
 
     ```
@@ -763,8 +767,6 @@ Setup Cert Manager
     customresourcedefinition.apiextensions.k8s.io/certificates.cert-manager.io created
     customresourcedefinition.apiextensions.k8s.io/clusterissuers.cert-manager.io created
     customresourcedefinition.apiextensions.k8s.io/issuers.cert-manager.io created
-    ```
-
 
     chad_burkins@cloudshell:~ (udemy-k8s-01)$ kubectl create namespace cert-manager
     namespace/cert-manager created
