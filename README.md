@@ -985,3 +985,25 @@ clusterissuer.cert-manager.io/letsencrypt-prod   True    3h
 NAMESPACE   NAME                                                       READY   SECRET         AGE
 default     certificate.cert-manager.io/udemy-k8s-01-tls-certificate   True    udemy-k8s-01   3h
 ```
+
+##### To see the (unencrypted) contents of a secret
+
+```
+chad_burkins@cloudshell:~ (udemy-k8s-02)$ kubectl describe secrets/udemy-k8s-01
+Name:         udemy-k8s-01
+Namespace:    default
+Labels:       <none>
+Annotations:  cert-manager.io/alt-names: chadburkins.org,www.chadburkins.org
+              cert-manager.io/certificate-name: udemy-k8s-01-tls-certificate
+              cert-manager.io/common-name: chadburkins.org
+              cert-manager.io/ip-sans:
+              cert-manager.io/issuer-kind: ClusterIssuer
+              cert-manager.io/issuer-name: letsencrypt-prod
+              cert-manager.io/uri-sans:
+Type:  kubernetes.io/tls
+Data
+====
+ca.crt:   0 bytes
+tls.crt:  3586 bytes
+tls.key:  1679 bytes
+```

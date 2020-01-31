@@ -6,7 +6,7 @@ metadata:
     # cert-manager annotation docs: https://cert-manager.io/docs/usage/ingress/
     annotations:
         # nginx ingress pkg will discover all ingress with this annotation
-        kubernetes.io/ingress.class: nginx #Create controller based on nginx project
+        kubernetes.io/ingress.class: nginx
         # removes the "/api", rewrites as "/"
         nginx.ingress.kubernetes.io/rewrite-target: /$1
         # Needed for https, informs ingress to use https certificate from resource named "letsencrypt-prod" (defined by issuer.yaml)
@@ -14,13 +14,20 @@ metadata:
         #   stored in name provided by spec.tls.secretName
         cert-manager.io/cluster-issuer: "letsencrypt-prod"
         # If user attempt http://domainname.org, will redirect to https://domainname.org
-        # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        # By default, ingress controller redirects to https if TLS is enabled for that ingress.
+        nginx.ingress.kubernetes.io/ssl-redirect: "false"
 
+# I think "spec" is defined by k8s ingress, rather than nginx-ingress addon
+# documentation: https://kubernetes.io/docs/concepts/services-networking/ingress/
 spec:
     # entire "tls" section added for https config
     # Placing a host in tls config will signal that a certificate should be created
     tls:
-        - secretName: udemy-k8s-01
+        # Must contain keys named tls.crt (certificate) and tls.key (private key) to use for TLS
+        # You can inspect via "kubectl describe secrets/secret-name"
+        # Referencing this secret here tells Ingress controller to secure comms from client to Load Balancer using TLS
+        # You must make sure this TLS secret came form a certificate that contains a Common Name (CN), also known as FQDN
+        - secretName: udemy-k8s-01 # will be in "default" namespace
     # tls:
     #     - hosts:
     #           - chadburkins.org
@@ -28,8 +35,21 @@ spec:
     #           # cert-manager will store created certificate in this secret, matches certificate.yaml:spec:secretName
     #       secretName: udemy-k8s-01
     # Original rules before https config
+    rules:
+        - http:
+              paths:
+                  - path: /?(.*)
+                    backend:
+                        serviceName: client-cluster-ip-service
+                        servicePort: 3000
+                  - path: /api/?(.*)
+                    backend:
+                        serviceName: server-cluster-ip-service
+                        servicePort: 5000
+    # For https config, Instructor said we need to define both domain.org and www.domain.org
     # rules:
-    #     - http:
+    #     - host: chadburkins.org # optional, if present in header, this rule will only apply to matching hosts
+    #       http:
     #           paths:
     #               - path: /?(.*)
     #                 backend:
@@ -39,28 +59,14 @@ spec:
     #                 backend:
     #                     serviceName: server-cluster-ip-service
     #                     servicePort: 5000
-
-    # For https config, need to slightly modify, and double up for domain.org and www.domain.org
-    rules:
-        - host: chadburkins.org
-          http:
-              paths:
-                  - path: /?(.*)
-                    backend:
-                        serviceName: client-cluster-ip-service
-                        servicePort: 3000
-                  - path: /api/?(.*)
-                    backend:
-                        serviceName: server-cluster-ip-service
-                        servicePort: 5000
-        - host: www.chadburkins.org
-          http:
-              paths:
-                  - path: /?(.*)
-                    backend:
-                        serviceName: client-cluster-ip-service
-                        servicePort: 3000
-                  - path: /api/?(.*)
-                    backend:
-                        serviceName: server-cluster-ip-service
-                        servicePort: 5000
+    #     - host: www.chadburkins.org
+    #       http:
+    #           paths:
+    #               - path: /?(.*)
+    #                 backend:
+    #                     serviceName: client-cluster-ip-service
+    #                     servicePort: 3000
+    #               - path: /api/?(.*)
+    #                 backend:
+    #                     serviceName: server-cluster-ip-service
+    #                     servicePort: 5000
