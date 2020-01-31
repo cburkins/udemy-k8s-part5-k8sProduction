@@ -869,3 +869,33 @@ Setup Cert Manager
     - Add annotations for nginx and certmanager
     - Add "tls" section to spec
     - Add rules for domainname.org and www.domainname.org
+
+## Troubleshooting
+
+To see inbound traffic handled by nginx ingress (via Google Cloud Shell).
+
+```
+chad_burkins@cloudshell:~ (udemy-k8s-01)$ kubectl get pods
+NAME                                                      READY   STATUS    RESTARTS   AGE
+client-deployment-7946895f69-chx2c                        1/1     Running   0          94m
+client-deployment-7946895f69-hgxqs                        1/1     Running   0          94m
+client-deployment-7946895f69-lvwwc                        1/1     Running   0          94m
+my-nginx-nginx-ingress-controller-74654dfd56-x7h6h        1/1     Running   0          8h
+my-nginx-nginx-ingress-default-backend-858bdbcf95-9k22q   1/1     Running   0          8h
+postgres-deployment-58ffd476c4-mgpzq                      1/1     Running   0          6h37m
+redis-deployment-6f6947dd7d-nfq2x                         1/1     Running   0          6h37m
+server-deployment-75b5d84c5d-nvgqc                        1/1     Running   0          94m
+worker-deployment-bb8f46d76-jbtwk                         1/1     Running   0          94m
+
+chad_burkins@cloudshell:~ (udemy-k8s-01)$ kubectl logs --tail=5 --follow my-nginx-nginx-ingress-controller-74654dfd56-x7h6h
+10.142.0.5 - - [31/Jan/2020:00:00:17 +0000] "GET /api/values/all HTTP/2.0" 200 96 "https://www.chadburkins.org/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chro
+me/79.0.3945.130 Safari/537.36" 30 0.014 [default-server-cluster-ip-service-5000] [] 10.8.1.23:5000 96 0.014 200 b4f26e6e7f2bd267a7dcc15106762ceb
+10.142.0.5 - - [31/Jan/2020:00:00:17 +0000] "GET /static/css/main.c17080f1.css.map HTTP/2.0" 200 1288 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0
+.3945.130 Safari/537.36" 39 0.002 [default-client-cluster-ip-service-3000] [] 10.8.1.24:3000 1288 0.003 200 05e3776f5f8de3813baa4a1baa6819f3
+10.142.0.6 - - [31/Jan/2020:00:00:17 +0000] "GET /manifest.json HTTP/2.0" 200 227 "https://www.chadburkins.org/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chro
+me/79.0.3945.130 Safari/537.36" 245 0.003 [default-client-cluster-ip-service-3000] [] 10.8.0.24:3000 317 0.002 200 76d199ec5dbbbebb915fee6ff278f13c
+10.142.0.5 - - [31/Jan/2020:00:00:17 +0000] "GET /static/js/main.397eacb6.js.map HTTP/2.0" 200 1048691 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.
+0.3945.130 Safari/537.36" 50 0.462 [default-client-cluster-ip-service-3000] [] 10.8.0.23:3000 1048691 0.463 200 99f1e10f4ac30e6fa31bbe8299757cd1
+10.142.0.5 - - [31/Jan/2020:00:00:18 +0000] "GET /service-worker.js HTTP/2.0" 304 0 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/5
+37.36" 108 0.001 [default-client-cluster-ip-service-3000] [] 10.8.0.23:3000 0 0.001 304 93086b65152a724ad1b41e8ac2975d5e
+```
