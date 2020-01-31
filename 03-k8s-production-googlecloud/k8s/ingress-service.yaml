@@ -6,7 +6,7 @@ metadata:
         kubernetes.io/ingress.class: nginx #Create controller based on nginx project
         nginx.ingress.kubernetes.io/rewrite-target: /$1 #removes the "/api", rewrites as "/"
         # Added for https certificate, informs ingress to use https certificate from letsencrypt-prod
-        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+        # cert-manager.io/cluster-issuer: "letsencrypt-prod"
         # If user attempt http://domainname.org, will redirect to https://domainname.org
         # nginx.ingress.kubernetes.io/ssl-redirect: "true"
 

@@ -200,7 +200,7 @@ NOTE: "Indexes I have seen" is pulling from Postges container, while "Caculated 
     NOTES:
     The nginx-ingress controller has been installed.
     It may take a few minutes for the LoadBalancer IP to be available.
-    You can watch the status by running 'kubectl --namespace default get services -o wide -w my-nginx-nginx-ingress-controller'
+    You can watch the status by running 'kubectl --namespace default get services -o wide my-nginx-nginx-ingress-controller'
 
     $ kubectl --namespace default get services -o wide my-nginx-nginx-ingress-controller
     NAME                                TYPE           CLUSTER-IP    EXTERNAL-IP   PORT(S)                      AGE    SELECTOR
@@ -919,4 +919,58 @@ me/79.0.3945.130 Safari/537.36" 245 0.003 [default-client-cluster-ip-service-300
 0.3945.130 Safari/537.36" 50 0.462 [default-client-cluster-ip-service-3000] [] 10.8.0.23:3000 1048691 0.463 200 99f1e10f4ac30e6fa31bbe8299757cd1
 10.142.0.5 - - [31/Jan/2020:00:00:18 +0000] "GET /service-worker.js HTTP/2.0" 304 0 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/5
 37.36" 108 0.001 [default-client-cluster-ip-service-3000] [] 10.8.0.23:3000 0 0.001 304 93086b65152a724ad1b41e8ac2975d5e
+```
+
+##### To see ingress-nginx version
+
+```
+$ kubectl exec -it my-nginx-nginx-ingress-controller-74654dfd56-fw8zs -- /nginx-ingress-controller --version
+-------------------------------------------------------------------------------
+NGINX Ingress controller
+  Release:       0.28.0
+  Build:         git-1f93cb8f3
+  Repository:    https://github.com/kubernetes/ingress-nginx
+  nginx version: nginx/1.17.7
+
+-------------------------------------------------------------------------------
+
+```
+
+##### to see ingress-nginx configuration
+
+```
+chad_burkins@cloudshell:~ (udemy-k8s-02)$ kubectl describe ing
+Name:             ingress-service
+Namespace:        default
+Address:
+Default backend:  default-http-backend:80 (10.4.1.8:8080)
+Rules:
+  Host                 Path  Backends
+  ----                 ----  --------
+  chadburkins.org
+                       /?(.*)       client-cluster-ip-service:3000 (<none>)
+                       /api/?(.*)   server-cluster-ip-service:5000 (<none>)
+  www.chadburkins.org
+                       /?(.*)       client-cluster-ip-service:3000 (<none>)
+                       /api/?(.*)   server-cluster-ip-service:5000 (<none>)
+Annotations:
+  kubernetes.io/ingress.class:                       nginx
+  nginx.ingress.kubernetes.io/rewrite-target:        /$1
+  cert-manager.io/cluster-issuer:                    letsencrypt-prod
+  kubectl.kubernetes.io/last-applied-configuration:  {"apiVersion":"extensions/v1beta1","kind":"Ingress","metadata":{"annotations":{"cert-manager.io/cluster-issuer":"letsencrypt-prod","kubernetes.io/ingress.class":"nginx",
+"nginx.ingress.kubernetes.io/rewrite-target":"/$1"},"name":"ingress-service","namespace":"default"},"spec":{"rules":[{"host":"chadburkins.org","http":{"paths":[{"backend":{"serviceName":"client-cluster-ip-service","service
+Port":3000},"path":"/?(.*)"},{"backend":{"serviceName":"server-cluster-ip-service","servicePort":5000},"path":"/api/?(.*)"}]}},{"host":"www.chadburkins.org","http":{"paths":[{"backend":{"serviceName":"client-cluster-ip-ser
+vice","servicePort":3000},"path":"/?(.*)"},{"backend":{"serviceName":"server-cluster-ip-service","servicePort":5000},"path":"/api/?(.*)"}]}}]}}
+Events:
+  Type    Reason  Age   From                      Message
+  ----    ------  ----  ----                      -------
+  Normal  CREATE  57m   nginx-ingress-controller  Ingress default/ingress-service
+```
+
+##### Get Load Balancer IP Address
+
+```
+chad_burkins@cloudshell:~ (udemy-k8s-02)$ kubectl --namespace default get services -o wide my-nginx-nginx-ingress-controller
+NAME                                TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)                      AGE     SELECTOR
+my-nginx-nginx-ingress-controller   LoadBalancer   10.70.13.233   104.197.27.96   80:31920/TCP,443:30107/TCP   3h27m   app=nginx-ingress,component=controller,release=my-nginx
 ```
