@@ -2,20 +2,28 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
     name: ingress-service
+
+    # k8s ingress documentation: https://kubernetes.io/docs/concepts/services-networking/ingress/
     # nginx-ingress annotation docs: https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/
     # cert-manager annotation docs: https://cert-manager.io/docs/usage/ingress/
     annotations:
         # nginx ingress pkg will discover all ingress with this annotation
         kubernetes.io/ingress.class: nginx
+
         # removes the "/api", rewrites as "/"
         nginx.ingress.kubernetes.io/rewrite-target: /$1
-        # Needed for https, informs ingress to use https certificate from resource named "letsencrypt-prod" (defined by issuer.yaml)
-        # ingress-shim (cert-manager) looks for Ingress resources with this annotation, then ingres-shim will ensure that a Certificate resource exists,
-        #   stored in name provided by spec.tls.secretName
+
+        # For https, informs ingress to use https certificate from resource named "letsencrypt-prod" (defined by issuer.yaml)
+        # ingress-shim (cert-manager) looks for Ingress resources with this annotation, then ensures that Certificate resource exists
+        # ingres-shim will store in name provided by spec.tls.secretName
+        # this also tells ingress-shim which issuer resource to talk with to get certificate
         cert-manager.io/cluster-issuer: "letsencrypt-prod"
+
         # If user attempt http://domainname.org, will redirect to https://domainname.org
         # By default, ingress controller redirects to https if TLS is enabled for that ingress.
-        nginx.ingress.kubernetes.io/ssl-redirect: "false"
+        # Seems that client uses HTTP Strict Transport Security (HSTS) to always redirect anyway
+        # TODO: When set to false, seems that using IP address in browser gets you insecure connection
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
 
 # I think "spec" is defined by k8s ingress, rather than nginx-ingress addon
 # documentation: https://kubernetes.io/docs/concepts/services-networking/ingress/
@@ -23,7 +31,7 @@ spec:
     # entire "tls" section added for https config
     # Placing a host in tls config will signal that a certificate should be created
     tls:
-        # Must contain keys named tls.crt (certificate) and tls.key (private key) to use for TLS
+        # This secret must contain keys named tls.crt (certificate) and tls.key (private key) to use for TLS
         # You can inspect via "kubectl describe secrets/secret-name"
         # Referencing this secret here tells Ingress controller to secure comms from client to Load Balancer using TLS
         # You must make sure this TLS secret came form a certificate that contains a Common Name (CN), also known as FQDN

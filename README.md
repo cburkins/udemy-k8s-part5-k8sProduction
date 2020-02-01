@@ -939,7 +939,7 @@ NGINX Ingress controller
 ##### to see ingress-nginx configuration
 
 ```
-chad_burkins@cloudshell:~ (udemy-k8s-02)$ kubectl describe ing
+$ kubectl describe ing
 Name:             ingress-service
 Namespace:        default
 Address:
